@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UserService {
+export class AuthService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>, // Репозиторий для работы с пользователями
+    private userRepository: Repository<User>,
   ) {}
 
   async findOne(email: string): Promise<User | null> {

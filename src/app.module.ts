@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/user.entity';
-import { UserModule } from './user/user.module';
-
+import { User } from './auth/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
-    UserModule,
+    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -21,7 +21,7 @@ import { UserModule } from './user/user.module';
       entities: [User],
       synchronize: true,
     }),
-    UserModule,
+    ProductsModule,
   ],
 })
 export class AppModule {}
