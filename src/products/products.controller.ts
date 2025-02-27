@@ -1,34 +1,60 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update.dto';
 import { CreateProductDto } from './dto/create.dto';
+import { Products } from './entities/products.entity';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get('/')
-  public getAll() {
-    return ['products']; 
+  public async getAll(): Promise<Products[]> {
+    return this.productsService.findAll();
   }
 
   @Get('/:id')
-  public getById(@Param('id') id: string) {
-    return { id };
+  public async getById(@Param('id') id: number) {
+    if (id) {
+      return this.productsService.findOne(id);
+    }
   }
 
-  @Post('/')
-  public create(@Body() createProductDto: CreateProductDto) {
-    return { message: 'Продукт успешно создан', product: createProductDto };
+  @Post('/create')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  public async create(@Body() createProductDto: CreateProductDto) {
+    const product = await this.productsService.create(createProductDto);
+    return { message: 'Товар успешно создан', product: createProductDto };
   }
 
   @Put('/:id')
-  public update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return { message: `Продукт с ID ${id} обновлен`, updatedProduct: updateProductDto };
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  public async update(
+    @Param('id') id: number,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    const updatedProduct = await this.productsService.update(
+      id,
+      updateProductDto,
+    );
+    return {
+      message: `Товар с ID ${id} обновлен`,
+      updatedProduct,
+    };
   }
 
   @Delete('/:id')
-  public delete(@Param('id') id: string) {
-    return { message: `Продукт с ID ${id} удален` };
+  public async delete(@Param('id') id: number) {
+    return this.productsService.delete(id), { message: 'Товар успешно удален' };
   }
 }

@@ -15,6 +15,5 @@ export class Products {
   price: number;
 
   @Column({ nullable: true })
-  description?: string | null
-
+  description?: string;
 }

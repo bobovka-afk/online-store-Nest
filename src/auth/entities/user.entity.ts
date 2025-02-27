@@ -8,8 +8,6 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-
   @Column()
   password: string;
 }
-// @Entity() — указывает, что это сущность, которая будет отображаться на таблицу users
