@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './auth/entities/user.entity';
-import { AuthModule } from './auth/auth.module';
+import { User } from './users/entities/user.entity';
 import { ProductsModule } from './products/products.module';
 import { Products } from './products/entities/products.entity';
 
 @Module({
   imports: [
-    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -24,5 +22,6 @@ import { Products } from './products/entities/products.entity';
     }),
     ProductsModule,
   ],
+  providers: [],
 })
 export class AppModule {}

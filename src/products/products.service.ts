@@ -12,8 +12,15 @@ export class ProductsService {
     private productsRepository: Repository<Products>,
   ) {}
 
-  async findAll(): Promise<Products[]> {
-    return this.productsRepository.find();
+  async findAllByCategory(category: string): Promise<any[]> {
+    return this.productsRepository.find({ where: { category } });
+  }
+
+  async findAllCategory(): Promise<string[]> {
+    const categories = await this.productsRepository.find({
+      select: ['category'],
+    });
+    return categories.map((c) => c.category);
   }
 
   async findOne(id: number): Promise<Products | null> {

@@ -8,6 +8,7 @@ import {
   Body,
   UsePipes,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update.dto';
@@ -18,23 +19,31 @@ import { Products } from './entities/products.entity';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Get('/')
-  public async getAll(): Promise<Products[]> {
-    return this.productsService.findAll();
+  @Get('/category')
+  async findAllByCategory(
+    @Query('category') category: string,
+  ): Promise<Products[]> {
+    if (!category) {
+      throw new Error('Необходим параметр запроса категории');
+    }
+    return this.productsService.findAllByCategory(category);
+  }
+  @Get('/categories')
+  public async getAllCategories() {
+    return this.productsService.findAllCategory();
   }
 
   @Get('/:id')
   public async getById(@Param('id') id: number) {
-    if (id) {
-      return this.productsService.findOne(id);
-    }
+    const product = await this.productsService.findOne(id);
+    return product;
   }
 
   @Post('/create')
   @UsePipes(new ValidationPipe({ whitelist: true }))
   public async create(@Body() createProductDto: CreateProductDto) {
     const product = await this.productsService.create(createProductDto);
-    return { message: 'Товар успешно создан', product: createProductDto };
+    return { message: 'Товар успешно создан', product };
   }
 
   @Put('/:id')
@@ -55,6 +64,7 @@ export class ProductsController {
 
   @Delete('/:id')
   public async delete(@Param('id') id: number) {
-    return this.productsService.delete(id), { message: 'Товар успешно удален' };
+    await this.productsService.delete(id);
+    return { message: 'Товар успешно удален' };
   }
 }
