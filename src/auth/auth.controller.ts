@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from '../users/dto/login.dto'
-import { RegisterDto } from '../users/dto/register.dto'
+import { LoginDto } from '../users/dto/login.dto';
+import { RegisterDto } from '../users/dto/register.dto';
 import { UpdateRoleDto } from 'users/dto/updateRole.dto';
 import { BadRequestException } from '@nestjs/common';
 
@@ -10,15 +10,20 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto.email, registerDto.password);
+  async register(@Body() createUserDto: RegisterDto): Promise<any> {
+    const user = await this.authService.register(
+      createUserDto.email,
+      createUserDto.password,
+    );
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
-
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(await this.authService.validateUser(loginDto.email, loginDto.password));
+    return this.authService.login(
+      await this.authService.validateUser(loginDto.email, loginDto.password),
+    );
   }
-
 
   @Patch('update-role')
   async updateUserRole(@Body() { email, id, role }: UpdateRoleDto) {

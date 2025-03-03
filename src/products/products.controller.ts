@@ -8,16 +8,19 @@ import {
   Body,
   UsePipes,
   ValidationPipe,
-  Query,BadRequestException, UseGuards} from '@nestjs/common';
+  Query,
+  BadRequestException,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update.dto';
 import { CreateProductDto } from './dto/create.dto';
-import { Products } from './entities/products.entity';
+import { CreateCategoryDto } from './dto/createCategory.dto';
+import { Products } from '../entities/products.entity';
 import { Roles } from 'auth/decorators/roles.decorator';
-import { Role } from '../auth/enums/roles.enum'
+import { Role } from '../auth/enums/roles.enum';
 import { RolesGuard } from 'auth/guards/roles.guard';
 import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
-import { Admin } from 'typeorm';
 
 @Controller('products')
 @UseGuards(RolesGuard, JwtAuthGuard)
@@ -26,12 +29,15 @@ export class ProductsController {
 
   @Get('/category')
   @Roles(Role.User, Role.Admin)
-  async findAllByCategory(@Query('category') category: string): Promise<Products[]> {
-      if (!category) {
-          throw new BadRequestException('Необходим параметр запроса категории');
-      }
-      return this.productsService.findAllByCategory(category);
+  async findAllByCategory(
+    @Query('category') category: string,
+  ): Promise<Products[]> {
+    if (!category) {
+      throw new BadRequestException('Необходим параметр запроса категории');
+    }
+    return this.productsService.findAllByCategory(category);
   }
+
   @Get('/categories')
   @Roles(Role.User, Role.Admin)
   public async getAllCategories() {
@@ -51,6 +57,13 @@ export class ProductsController {
   public async create(@Body() createProductDto: CreateProductDto) {
     const product = await this.productsService.create(createProductDto);
     return { message: 'Товар успешно создан', product };
+  }
+
+  @Post('/create-category')
+  @Roles(Role.Admin)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  public async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.productsService.createCategory(createCategoryDto);
   }
 
   @Put('/:id')

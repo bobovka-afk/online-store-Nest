@@ -1,14 +1,18 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { Role } from '../auth/enums/roles.enum'
+import { Role } from './enums/roles.enum';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -32,12 +36,10 @@ export class AuthService {
     if (existingUser) {
       throw new BadRequestException('Email уже используется');
     }
-    return this.usersService.createUser(email, password, role);
+    return this.usersService.createUser(email, password);
   }
 
   async updateRole(identifier: string | number, newRole: Role) {
-    return this.usersService.updateRole(identifier, newRole); 
+    return this.usersService.updateRole(identifier, newRole);
   }
-
-
 }
