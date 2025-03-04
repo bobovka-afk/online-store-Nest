@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('users')
+@Entity('users') // s в конце в названий таблицы руками не добавляется
 export class User {
   @PrimaryGeneratedColumn()
   id: number;

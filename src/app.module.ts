@@ -22,9 +22,12 @@ import { JwtModule } from '@nestjs/jwt';
       username: 'sa',
       password: 'Password2201',
       database: 'db_currency',
+      // host, port, username, password, database perenesti v .env
       entities: [User, Products, Categories],
       synchronize: true,
+      // synchronize: true ubrat'
     }),
+      // а где миграции?
     JwtModule.register({}),
     ProductsModule,
     UsersModule,

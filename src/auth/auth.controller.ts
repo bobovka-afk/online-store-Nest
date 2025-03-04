@@ -26,7 +26,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(
-      await this.authService.validateUser(loginDto.email, loginDto.password),
+      await this.authService.validateUser(loginDto.email, loginDto.password), // эта функция должна вызываться уже в сервисе, не в контроллере
     );
   }
 
@@ -35,9 +35,9 @@ export class AuthController {
   async updateUserRole(@Body() { email, id, role }: UpdateRoleDto) {
     if (!email && !id) {
       throw new BadRequestException('Email или ID должны быть предоставлены');
-    }
+    } // это проверяется на уровне дто
 
-    if (email) {
+    if (email) { // нет необходимости в этих ифах. в крайнем случае делай это уже в сервисе, но не в контроллере
       return this.authService.updateRole(email, role);
     } else if (id) {
       return this.authService.updateRole(id, role);

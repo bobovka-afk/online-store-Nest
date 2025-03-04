@@ -23,6 +23,7 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const decoded = await this.jwtService.verifyAsync(token);
+      // проверяем в базе есть ли такой пользователь
       request.user = decoded; 
       return true;
     } catch (error) {
