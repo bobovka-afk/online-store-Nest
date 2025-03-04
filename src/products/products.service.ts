@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Products } from '../entities/products.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateProductDto } from './dto/create.dto';
+import { CreateProductDto } from './dto/createProduct.dto';
 import { UpdateProductDto } from './dto/update.dto';
 import { CreateCategoryDto } from './dto/createCategory.dto';
 import { Categories } from 'entities/categories.entity';
@@ -24,9 +24,12 @@ export class ProductsService {
     });
   }
 
-  async findAllCategory(): Promise<string[]> {
+  async findAllCategory(): Promise<{ id: number; name: string }[]> {
     const categories = await this.categoriesRepository.find();
-    return categories.map((category) => category.name);
+    return categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+    }));
   }
 
   async findOne(id: number): Promise<Products | null> {
@@ -38,8 +41,26 @@ export class ProductsService {
   }
 
   async create(createProductDto: CreateProductDto): Promise<Products> {
-    const newProduct = this.productsRepository.create(createProductDto);
-    return this.productsRepository.save(newProduct);
+    const { name, price, description, categoryIds } = createProductDto;
+
+    const categories = await this.categoriesRepository.find({
+      where: {
+        id: In(categoryIds),
+      },
+    });
+
+    // категории запрос == бд
+    if (categories.length !== categoryIds.length) {
+      throw new NotFoundException('Некоторые категории не найдены');
+    }
+
+    const product = this.productsRepository.create({
+      name,
+      price,
+      description,
+      categories,
+    });
+    return this.productsRepository.save(product);
   }
 
   async createCategory(

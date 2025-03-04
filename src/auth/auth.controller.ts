@@ -1,11 +1,16 @@
-import { Controller, Post, Body, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Patch, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from '../users/dto/login.dto';
 import { RegisterDto } from '../users/dto/register.dto';
 import { UpdateRoleDto } from 'users/dto/updateRole.dto';
 import { BadRequestException } from '@nestjs/common';
+import { Roles } from 'auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/roles.enum';
+import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
+@UseGuards(RolesGuard, JwtAuthGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -26,6 +31,7 @@ export class AuthController {
   }
 
   @Patch('update-role')
+  @Roles(Role.Admin)
   async updateUserRole(@Body() { email, id, role }: UpdateRoleDto) {
     if (!email && !id) {
       throw new BadRequestException('Email или ID должны быть предоставлены');

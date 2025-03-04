@@ -11,10 +11,11 @@ import {
   Query,
   BadRequestException,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update.dto';
-import { CreateProductDto } from './dto/create.dto';
+import { CreateProductDto } from './dto/createProduct.dto';
 import { CreateCategoryDto } from './dto/createCategory.dto';
 import { Products } from '../entities/products.entity';
 import { Roles } from 'auth/decorators/roles.decorator';
@@ -30,12 +31,13 @@ export class ProductsController {
   @Get('/category')
   @Roles(Role.User, Role.Admin)
   async findAllByCategory(
-    @Query('category') category: string,
+    @Query('categoryName') categoryName: string,
   ): Promise<Products[]> {
-    if (!category) {
-      throw new BadRequestException('Необходим параметр запроса категории');
+    if (!categoryName) {
+      throw new NotFoundException('Некоторые категории не найдены');
+    } else {
+      return this.productsService.findAllByCategory(categoryName);
     }
-    return this.productsService.findAllByCategory(category);
   }
 
   @Get('/categories')
@@ -55,8 +57,7 @@ export class ProductsController {
   @Roles(Role.Admin)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   public async create(@Body() createProductDto: CreateProductDto) {
-    const product = await this.productsService.create(createProductDto);
-    return { message: 'Товар успешно создан', product };
+    return this.productsService.create(createProductDto);
   }
 
   @Post('/create-category')
