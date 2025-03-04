@@ -31,11 +31,12 @@ export class RolesGuard implements CanActivate {
     try {
       const decoded = await this.jwtService.verifyAsync(token);
       request.user = decoded;
+      // request.user = await this.jwtService.verifyAsync(token);
 
       if (!request.user.role) {
-        throw new ForbiddenException('Роль не найдена');
+        throw new ForbiddenException('Роль не найдена'); // этот throw ничего не делает, т.к. падает в кэтч
       }
-      
+      // проверка в базе правда ли у этого юзера есть эта роль
       return requiredRoles.includes(request.user.role);
     } catch (error) {
       throw new ForbiddenException('Неверный токен');

@@ -11,8 +11,8 @@ import { JwtStrategy } from '../auth/strategies/jwt.strategy';
     UsersModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'mySecretKey',
-      signOptions: { expiresIn: '1h' },
+      secret: process.env.JWT_SECRET || 'mySecretKey', // тут нет смысла проставлять дефолт, сервер должен работать обязательно с правильным ключом, и обязательно с скрытым
+      signOptions: { expiresIn: '1h' }, // это лучше уже прописывать на уровне выдачи токена
     }),
   ],
   providers: [AuthService, JwtStrategy],
