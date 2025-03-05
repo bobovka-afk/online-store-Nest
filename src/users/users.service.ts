@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { Role } from '../auth/enums/roles.enum';
+import { UpdateRoleDto } from './dto/updateRole.dto';
 
 @Injectable()
 export class UsersService {
@@ -16,7 +16,7 @@ export class UsersService {
   }
 
   async createUser(email: string, password: string) {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
     const user = this.userRepository.create({
       email,
       password: hashedPassword,
@@ -24,17 +24,12 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async updateRole(identifier: string | number, newRole: Role) {
-    const updateResult = await this.userRepository.update(
-      typeof identifier === 'string'
-        ? { email: identifier }
-        : { id: identifier },
-      { role: newRole },
-    );
-
+  async updateRole(updateRoleDto: UpdateRoleDto) {
+    const {id , role} = updateRoleDto
+    const updateResult = await this.userRepository.update({ id }, { role });
     if (updateResult.affected === 0) {
       throw new Error('Пользователь не найден');
     }
-    return { message: 'Роль успешно обновлена' };
+    return true
   }
 }

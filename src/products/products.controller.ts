@@ -19,17 +19,16 @@ import { CreateProductDto } from './dto/createProduct.dto';
 import { CreateCategoryDto } from './dto/createCategory.dto';
 import { Products } from '../entities/products.entity';
 import { Roles } from 'auth/decorators/roles.decorator';
-import { Role } from '../auth/enums/roles.enum';
+import { ERole } from '../auth/enums/roles.enum';
 import { RolesGuard } from 'auth/guards/roles.guard';
 import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
-
+//убрал / из названия эндпоинтов и декораторы @Roles user, пайпы
 @Controller('products')
 @UseGuards(RolesGuard, JwtAuthGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get('/category')
-  @Roles(Role.User, Role.Admin)
   async findAllByCategory(
     @Query('categoryName') categoryName: string,
   ): Promise<Products[]> {
@@ -40,54 +39,56 @@ export class ProductsController {
     }
   }
 
-  @Get('/categories')
-  @Roles(Role.User, Role.Admin)
+  @Get('categories')
   public async getAllCategories() {
     return this.productsService.findAllCategory();
   }
 
   @Get('/:id')
-  @Roles(Role.User, Role.Admin)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   public async getById(@Param('id') id: number) {
-    const product = await this.productsService.findOne(id);
-    return product;
+    return this.productsService.findOneProduct(id);
   }
 
-  @Post('/create')
-  @Roles(Role.Admin)
+  @Post('create')
+  @Roles(ERole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   public async create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+    return this.productsService.createProduct(createProductDto);
   }
 
-  @Post('/create-category')
-  @Roles(Role.Admin)
+  @Post('create-category')
+  @Roles(ERole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   public async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.productsService.createCategory(createCategoryDto);
   }
 
-  @Put('/:id')
-  @Roles(Role.Admin)
+  @Put(':id')
+  @Roles(ERole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   public async update(
     @Param('id') id: number,
     @Body() updateProductDto: UpdateProductDto,
   ) {
-    const updatedProduct = await this.productsService.update(
+    const updatedProduct = await this.productsService.updateProduct(
       id,
       updateProductDto,
     );
     return {
       message: `Товар с ID ${id} обновлен`,
       updatedProduct,
-    };
+    }; //
+    // //
+    // //
+    // //перенести логику в сервис
   }
 
-  @Delete('/:id')
-  @Roles(Role.Admin)
+  @Delete(':id')
+  @Roles(ERole.ADMIN)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   public async delete(@Param('id') id: number) {
-    await this.productsService.delete(id);
+    await this.productsService.deleteProduct(id);
     return { message: 'Товар успешно удален' };
   }
 }

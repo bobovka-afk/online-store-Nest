@@ -22,25 +22,25 @@ export class ProductsService {
       relations: ['categories'],
       where: { categories: { name: categoryName } },
     });
-  }
+  } // переделать на возврат id 
 
   async findAllCategory(): Promise<{ id: number; name: string }[]> {
     const categories = await this.categoriesRepository.find();
     return categories.map((category) => ({
       id: category.id,
-      name: category.name,
+      name: category.name, //пагинацию и убрать перебор т.к. описание категории удалено
     }));
   }
 
-  async findOne(id: number): Promise<Products | null> {
-    const product = await this.productsRepository.findOne({ where: { id } });
+  async findOneProduct(id: number): Promise<Products | null> {
+    const product = await this.productsRepository.findOneBy({ id });
     if (!product) {
-      throw new NotFoundException(`Продукт с id ${id} не найден`);
+      throw new NotFoundException 
     }
     return this.productsRepository.findOne({ where: { id } });
   }
 
-  async create(createProductDto: CreateProductDto): Promise<Products> {
+  async createProduct(createProductDto: CreateProductDto): Promise<Products> { // новый роут который присваивает категории товарам
     const { name, price, description, categoryIds } = createProductDto;
 
     const categories = await this.categoriesRepository.find({
@@ -51,7 +51,7 @@ export class ProductsService {
 
     // категории запрос == бд
     if (categories.length !== categoryIds.length) {
-      throw new NotFoundException('Некоторые категории не найдены');
+      throw new NotFoundException('Некоторые категории не найдены'); 
     }
 
     const product = this.productsRepository.create({
@@ -60,17 +60,18 @@ export class ProductsService {
       description,
       categories,
     });
+
     return this.productsRepository.save(product);
   }
 
-  async createCategory(
+  async createCategory( // создать service.category для создания категории и присваивании (43строка)
     createCategoryDto: CreateCategoryDto,
   ): Promise<Categories> {
     const newCategory = this.categoriesRepository.create(createCategoryDto);
     return this.categoriesRepository.save(newCategory);
   }
 
-  async update(
+  async updateProduct(
     id: number,
     updateProductDto: UpdateProductDto,
   ): Promise<Products> {
@@ -80,12 +81,12 @@ export class ProductsService {
       throw new NotFoundException(`Продукт с id ${id} не найден`);
     }
 
-    Object.assign(product, updateProductDto);
+    Object.assign(product, updateProductDto); //переделать
 
     return this.productsRepository.save(product);
   }
 
-  async delete(id: number): Promise<void> {
+  async deleteProduct(id: number): Promise<void> {
     await this.productsRepository.delete(id);
   }
 }

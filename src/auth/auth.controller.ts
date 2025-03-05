@@ -1,19 +1,16 @@
-import { Controller, Post, Body, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Patch, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from '../users/dto/login.dto';
 import { RegisterDto } from '../users/dto/register.dto';
-import { UpdateRoleDto } from 'users/dto/updateRole.dto';
-import { BadRequestException } from '@nestjs/common';
-import { Roles } from 'auth/decorators/roles.decorator';
-import { Role } from '../auth/enums/roles.enum';
-import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
 
+//добавил пайпы
+//написать роут для смены (мб восстановления)пароля
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async register(@Body() createUserDto: RegisterDto): Promise<any> {
     const user = await this.authService.register(
       createUserDto.email,
@@ -24,20 +21,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto); //убрал логику в сервис
   }
 
-  @Patch('update-role') // Перенести if в service
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Roles(Role.Admin)
-  async updateUserRole(@Body() { email, id, role }: UpdateRoleDto) {
-    if (email) {
-      return this.authService.updateRole(email, role);
-    } else if (id) {
-      return this.authService.updateRole(id, role);
-    } else {
-      throw new BadRequestException('Некорректные данные');
-    }
-  }
 }
