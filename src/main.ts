@@ -16,7 +16,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalGuards(app.get(RolesGuard)); 
+  app.useGlobalGuards(app.get(RolesGuard));
 
   await app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);

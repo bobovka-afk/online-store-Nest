@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ProductsModule } from './products/products.module';
 import { Products } from './entities/products.entity';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from 'users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { Categories } from './entities/categories.entity';
 import { RolesGuard } from './auth/guards/roles.guard';

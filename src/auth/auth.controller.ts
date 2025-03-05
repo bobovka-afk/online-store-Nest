@@ -10,7 +10,6 @@ import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
-@UseGuards(RolesGuard, JwtAuthGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -23,20 +22,16 @@ export class AuthController {
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
+
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(
-      await this.authService.validateUser(loginDto.email, loginDto.password),
-    );
+    return this.authService.login(loginDto); //убрал логику в сервис
   }
 
-  @Patch('update-role')
+  @Patch('update-role') // Перенести if в service
+  @UseGuards(RolesGuard, JwtAuthGuard)
   @Roles(Role.Admin)
   async updateUserRole(@Body() { email, id, role }: UpdateRoleDto) {
-    if (!email && !id) {
-      throw new BadRequestException('Email или ID должны быть предоставлены');
-    }
-
     if (email) {
       return this.authService.updateRole(email, role);
     } else if (id) {

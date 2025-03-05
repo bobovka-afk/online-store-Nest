@@ -9,10 +9,10 @@ import {
   UsePipes,
   ValidationPipe,
   Query,
-  BadRequestException,
   UseGuards,
   NotFoundException,
 } from '@nestjs/common';
+
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update.dto';
 import { CreateProductDto } from './dto/createProduct.dto';
