@@ -20,13 +20,16 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
     if (!user){
-      throw new NotFoundException
+      throw new NotFoundException('Пользователь не найден');
     }
+    
     if (await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
+      const { password, ...result } = user; // возможно заменить на функцию
       return result;
+    } else {
+      throw new UnauthorizedException('Неверные данные для входа');
     }
-    throw new UnauthorizedException('Invalid credentials');
+    
   }
 
   async login(loginDto: LoginDto) {
@@ -35,7 +38,7 @@ export class AuthService {
       throw new UnauthorizedException
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, email: user.email, role: user.role };  // проверять роль в guard, а не при /login
     const expiresIn = '1h';
     return {
       access_token: this.jwtService.sign(payload, { expiresIn }),

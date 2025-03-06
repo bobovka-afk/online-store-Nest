@@ -2,10 +2,10 @@ import { IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength } from '
 
 export class UpdateProductDto {
   @IsOptional()
-  @IsString()
-  @MinLength(3)
-  @MaxLength(100)
-  name?: string;
+  @IsNumber()
+  @Min(1)
+  @Max(1000000)
+  id?: number;
 
   @IsOptional()
   @IsNumber()
