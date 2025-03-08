@@ -1,12 +1,21 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { ERole } from '../enums/roles.enum';
+import { AuthService } from 'auth/auth.service';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector, private jwtService: JwtService) {}
+  constructor(
+    private reflector: Reflector,
+    private authService: AuthService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<ERole[]>(ROLES_KEY, [
@@ -22,24 +31,17 @@ export class RolesGuard implements CanActivate {
     const authHeader = request.headers['authorization'];
 
     if (!authHeader) {
-      throw new ForbiddenException('Токен не предоставлен');
+      throw new UnauthorizedException('Токен не предоставлен');
     }
 
     const token = authHeader.split(' ')[1];
 
     if (!token) {
-      throw new ForbiddenException('Токен отсутствует');
+      throw new UnauthorizedException('Токен отсутствует');
     }
 
     try {
-
-      const secretKey = process.env.JWT_SECRET;
-
-      if (!secretKey) {
-        throw new ForbiddenException('JWT секретный ключ не найден');
-      }
-
-      const decoded = await this.jwtService.verifyAsync(token, { secret: secretKey });
+      const decoded = await this.authService.verifyAccessToken(token);
       request.user = decoded;
 
       if (!request.user.role) {
@@ -48,7 +50,7 @@ export class RolesGuard implements CanActivate {
 
       return requiredRoles.includes(request.user.role);
     } catch (error) {
-      throw new ForbiddenException('Неверный токен');
+      throw new ForbiddenException('Неверный или просроченный токен');
     }
   }
 }

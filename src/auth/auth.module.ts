@@ -1,26 +1,29 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from 'users/users.module';
+import { UsersModule } from '../users/users.module'; // Исправленный путь
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from '../auth/strategies/jwt.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy'; // Исправленный путь
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'entities/user.entity';
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
     PassportModule,
-    JwtModule.registerAsync({ //явно импортировал configmodule в токен для JWT_SECRET
-      imports: [ConfigModule], 
-      inject: [ConfigService], 
+    TypeOrmModule.forFeature([User]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'), 
+        secret: configService.get<string>('JWT_SECRET'),
       }),
     }),
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
-  exports: [JwtModule],
+  exports: [AuthService],
 })
 export class AuthModule {}
