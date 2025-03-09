@@ -1,20 +1,15 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsInt, ValidateIf } from 'class-validator';
-import { Type } from 'class-transformer';
-import { Role } from 'auth/enums/roles.enum';
-
+import { IsEnum, IsNotEmpty, IsInt, Min, Max } from 'class-validator';
+import { ERole } from 'auth/enums/roles.enum'; 
+//Переделать на только id(табельный) пользователя
 export class UpdateRoleDto {
-  @ValidateIf((o) => o.email !== undefined) 
-  @IsEmail({}, { message: 'Некорректный email' })
-  @IsOptional() 
-  email?: string;
 
-  @ValidateIf((o) => o.id !== undefined) 
-  @IsInt({ message: 'ID должен быть числом' })
-  @Type(() => Number) 
-  @IsOptional() 
-  id?: number;
-
-  @IsEnum(Role, { message: 'Роль должна быть "user" или "admin"' })
   @IsNotEmpty()
-  role: Role;
+  @IsInt()
+  @Min(0)
+  @Max(1000000)
+  id: number;
+
+  @IsEnum(ERole)
+  @IsNotEmpty()
+  role: ERole;
 }

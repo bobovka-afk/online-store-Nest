@@ -5,9 +5,10 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
+
 import { Categories } from './categories.entity';
 
-@Entity('products')
+@Entity('product')
 export class Products {
   @PrimaryGeneratedColumn()
   id: number;

@@ -1,15 +1,26 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { Role } from '../enums/roles.enum';
+import { ERole } from '../enums/roles.enum';
+import { AuthService } from 'auth/auth.service';
+import { Request, Response } from 'express';
+import { DecodedUser } from 'auth/interfaces/decoded-user.interface';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector, private jwtService: JwtService) {}
+  constructor(
+    private reflector: Reflector,
+    private authService: AuthService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+    const requiredRoles = this.reflector.getAllAndOverride<ERole[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -17,28 +28,56 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'];
 
-    if (!authHeader) {
-      throw new ForbiddenException('Токен не предоставлен');
-    }
-    const token = authHeader.split(' ')[1];
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
 
-    if (!token) {
-      throw new ForbiddenException('Токен отсутствует');
+    let accessToken = this.extractAccessToken(request);
+
+    if (!accessToken) {
+      const refreshToken = request.cookies?.refreshToken;
+      if (!refreshToken) {
+        throw new UnauthorizedException('Токен не предоставлен и Refresh-токен отсутствует');
+      }
+
+      try {
+        const tokens = await this.authService.refreshTokens(refreshToken);
+
+        response.cookie('refreshToken', tokens.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+        });
+
+        response.setHeader('Authorization', `Bearer ${tokens.accessToken}`);
+
+        request.user = await this.authService.verifyAccessToken(tokens.accessToken);
+        return this.hasRequiredRole(request.user as DecodedUser, requiredRoles);
+      } catch (refreshError) {
+        throw new UnauthorizedException('Не удалось обновить токен');
+      }
     }
+
     try {
-      const decoded = await this.jwtService.verifyAsync(token);
+      const decoded = await this.authService.verifyAccessToken(accessToken);
       request.user = decoded;
 
-      if (!request.user.role) {
-        throw new ForbiddenException('Роль не найдена');
-      }
-      
-      return requiredRoles.includes(request.user.role);
+      return this.hasRequiredRole(request.user as DecodedUser, requiredRoles);
     } catch (error) {
-      throw new ForbiddenException('Неверный токен');
+      throw new UnauthorizedException('Неверный или просроченный токен');
     }
+  }
+
+  private extractAccessToken(request: Request): string | null {
+    const authHeader = request.headers['authorization'];
+    return authHeader ? authHeader.split(' ')[1] : null;
+  }
+
+  private hasRequiredRole(user: DecodedUser, requiredRoles: ERole[]): boolean {
+    if (!user.role) {
+      throw new ForbiddenException('Роль не найдена');
+    }
+
+    return requiredRoles.includes(user.role);
   }
 }

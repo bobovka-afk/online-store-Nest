@@ -1,48 +1,69 @@
-import { Controller, Post, Body, Patch, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  Res,
+  UsePipes,
+  ValidationPipe,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from '../users/dto/login.dto';
 import { RegisterDto } from '../users/dto/register.dto';
-import { UpdateRoleDto } from 'users/dto/updateRole.dto';
-import { BadRequestException } from '@nestjs/common';
-import { Roles } from 'auth/decorators/roles.decorator';
-import { Role } from '../auth/enums/roles.enum';
-import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
-@UseGuards(RolesGuard, JwtAuthGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() createUserDto: RegisterDto): Promise<any> {
-    const user = await this.authService.register(
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async register(@Body() createUserDto: RegisterDto, @Res() res: Response) {
+    const tokens = await this.authService.register(
       createUserDto.email,
       createUserDto.password,
     );
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.json({ accessToken: tokens.accessToken });
   }
+
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(
-      await this.authService.validateUser(loginDto.email, loginDto.password),
-    );
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+    const tokens = await this.authService.login(loginDto.email, loginDto.password);
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.json({ accessToken: tokens.accessToken });
   }
 
-  @Patch('update-role')
-  @Roles(Role.Admin)
-  async updateUserRole(@Body() { email, id, role }: UpdateRoleDto) {
-    if (!email && !id) {
-      throw new BadRequestException('Email или ID должны быть предоставлены');
+  @Post('refresh')
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh-токен отсутствует');
     }
 
-    if (email) {
-      return this.authService.updateRole(email, role);
-    } else if (id) {
-      return this.authService.updateRole(id, role);
-    } else {
-      throw new BadRequestException('Некорректные данные');
-    }
+    const tokens = await this.authService.refreshTokens(refreshToken);
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.json({ accessToken: tokens.accessToken });
   }
 }
