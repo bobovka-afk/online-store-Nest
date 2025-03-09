@@ -34,7 +34,7 @@ export class ProductsService {
     });
 
     if (categories.length !== categoryIds.length) {
-      throw new NotFoundException('Некоторые категории не найдены'); 
+      throw new NotFoundException('Неверно указаны категории'); 
     }
 
     const product = this.productsRepository.create({

@@ -2,10 +2,10 @@ import {
   Controller,
   Post,
   Body,
-  UsePipes,
-  ValidationPipe,
   Req,
   Res,
+  UsePipes,
+  ValidationPipe,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
@@ -19,19 +19,33 @@ export class AuthController {
 
   @Post('register')
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async register(@Body() createUserDto: RegisterDto): Promise<any> {
-    const user = await this.authService.register(
+  async register(@Body() createUserDto: RegisterDto, @Res() res: Response) {
+    const tokens = await this.authService.register(
       createUserDto.email,
       createUserDto.password,
     );
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.json({ accessToken: tokens.accessToken });
   }
 
   @Post('login')
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+    const tokens = await this.authService.login(loginDto.email, loginDto.password);
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.json({ accessToken: tokens.accessToken });
   }
 
   @Post('refresh')
@@ -42,14 +56,14 @@ export class AuthController {
       throw new UnauthorizedException('Refresh-токен отсутствует');
     }
 
-    const { accessToken, refreshToken: newRefreshToken } =
-      await this.authService.refreshTokens(refreshToken);
+    const tokens = await this.authService.refreshTokens(refreshToken);
 
-    res.cookie('refreshToken', newRefreshToken, {
+    res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
     });
-    return res.json({ accessToken });
+
+    return res.json({ accessToken: tokens.accessToken });
   }
 }

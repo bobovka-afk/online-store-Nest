@@ -4,11 +4,9 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { LoginDto } from 'users/dto/login.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'entities/user.entity';
@@ -28,24 +26,23 @@ export class AuthService {
     }
 
     if (await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user; // возможно заменить на функцию
+      const { password, ...result } = user;
       return result;
     } else {
       throw new UnauthorizedException('Неверные данные для входа');
     }
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+  async login(email: string, password: string) {
+    const user = await this.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException();
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role }; // проверять роль в guard, а не при /login
-    const expiresIn = '1h';
-    return {
-      access_token: this.jwtService.sign(payload, { expiresIn }),
-    };
+    const tokens = await this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 
   async register(email: string, password: string) {
@@ -53,25 +50,12 @@ export class AuthService {
     if (existingUser) {
       throw new BadRequestException('Email уже используется');
     }
-    return this.usersService.createUser(email, password);
-  }
 
-  async verifyAccessToken(token: string) {
-    try {
-      return this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-    } catch (error) {
-      throw new UnauthorizedException('Токен недействителен');
-    }
-  }
+    const user = await this.usersService.createUser(email, password);
+    const tokens = await this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
 
-  async verifyRefreshToken(refreshToken: string) {
-    try {
-      return this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
-      });
-    } catch (error) {
-      throw new UnauthorizedException('Refresh-токен недействителен');
-    }
+    return tokens;
   }
 
   async generateTokens(user: User) {
@@ -84,10 +68,26 @@ export class AuthService {
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: '7d',
+      expiresIn: '30d',
     });
 
     return { accessToken, refreshToken };
+  }
+
+  async verifyAccessToken(token: string): Promise<User> {
+    try {
+      const decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+  
+      const user = await this.userRepository.findOne({ where: { id: decoded.userId } });
+  
+      if (!user) {
+        throw new UnauthorizedException('Пользователь не найден');
+      }
+  
+      return user;
+    } catch (error) {
+      throw new UnauthorizedException('Токен недействителен или просрочен');
+    }
   }
 
   async refreshTokens(refreshToken: string) {
@@ -96,10 +96,28 @@ export class AuthService {
       where: { id: decoded.userId },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('Пользователь не найден');
+    if (!user || user.refreshToken !== refreshToken) {
+      throw new UnauthorizedException('Refresh-токен невалиден');
     }
 
-    return this.generateTokens(user);
+    const tokens = await this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
+
+  async verifyRefreshToken(refreshToken: string) {
+    try {
+      return this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Refresh-токен недействителен');
+    }
+  }
+
+  async saveRefreshToken(userId: number, refreshToken: string) {
+    await this.userRepository.update(userId, { refreshToken });
+  }
+
 }
