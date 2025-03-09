@@ -10,6 +10,8 @@ import { Categories } from './entities/categories.entity';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { CategoriesModule } from './categories/categories.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { CategoriesModule } from './categories/categories.module';
     UsersModule,
     AuthModule,
     CategoriesModule,
+    CartModule,
+    OrdersModule,
   ],
   providers: [RolesGuard],
 })
