@@ -15,17 +15,17 @@ export class ProductsService {
     private categoriesRepository: Repository<Categories>,
   ) {}
 
-
   async findOneProduct(id: number): Promise<Products | null> {
     const product = await this.productsRepository.findOneBy({ id });
     if (!product) {
-      throw new NotFoundException 
+      throw new NotFoundException();
     }
-    return this.productsRepository.findOne({ where: { id } });
+    return product;
   }
 
   async createProduct(createProductDto: CreateProductDto): Promise<Products> {
-    const { name, price, description, categoryIds } = createProductDto;
+    const { name, price, description, quantity, categoryIds } =
+      createProductDto;
 
     const categories = await this.categoriesRepository.find({
       where: {
@@ -34,17 +34,16 @@ export class ProductsService {
     });
 
     if (categories.length !== categoryIds.length) {
-      throw new NotFoundException('Неверно указаны категории'); 
+      throw new NotFoundException('Неверно указаны категории');
     }
 
-    const product = this.productsRepository.create({
+    return this.productsRepository.save({
       name,
       price,
       description,
+      quantity,
       categories,
     });
-
-    return this.productsRepository.save(product);
   }
 
   async updateProduct(
@@ -52,21 +51,21 @@ export class ProductsService {
     updateProductDto: UpdateProductDto,
   ): Promise<boolean> {
     const result = await this.productsRepository.update(id, updateProductDto);
-  
+
     if (result.affected === 0) {
       throw new NotFoundException(`Продукт с id ${id} не найден`);
     }
-  
+
     return true;
   }
 
   async deleteProduct(id: number): Promise<boolean> {
     const result = await this.productsRepository.delete(id);
-  
+
     if (result.affected === 0) {
       throw new NotFoundException(`Продукт с id ${id} не найден`);
     }
-  
-    return true; 
+
+    return true;
   }
 }

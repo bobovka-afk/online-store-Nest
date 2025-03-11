@@ -4,9 +4,12 @@ import {
   Column,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 
 import { Categories } from './categories.entity';
+import { Cart } from './cart.entity';
+import { OrderItem } from './order-items.entity';
 
 @Entity('product')
 export class Products {
@@ -18,6 +21,9 @@ export class Products {
 
   @Column()
   price: number;
+
+  @Column()
+  quantity: number;
 
   @Column({ nullable: true })
   description?: string;
@@ -31,4 +37,10 @@ export class Products {
   @ManyToMany(() => Categories, (category) => category.products)
   @JoinTable({ name: 'product_categories' })
   categories: Categories[];
+
+  @OneToMany(() => Cart, (cartItem) => cartItem.product_id)
+  cartItems: [];
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
+  orderItems: OrderItem[];
 }

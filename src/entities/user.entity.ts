@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
+import { Cart } from './cart.entity';
+import { Order } from './orders.entity';
 
 @Entity('user')
 export class User {
@@ -18,5 +27,12 @@ export class User {
   createdAt: Date;
 
   @Column({ nullable: true })
-  refreshToken?: string 
+  refreshToken?: string;
+
+  @OneToOne(() => Cart, (cart) => cart.user_id, { cascade: true })
+  @JoinColumn()
+  cart: Cart;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 }

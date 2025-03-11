@@ -17,26 +17,25 @@ export class CategoriesService {
 
   async findAllByCategory(
     categoryId: number,
-    paginationDto: PaginationDto
+    paginationDto: PaginationDto,
   ): Promise<{ data: Products[]; count: number }> {
-    const { limit = 20, offset = 0, priceOrder = 'desc' } = paginationDto; 
-  
+    const { limit = 20, offset = 0, priceOrder = 'desc' } = paginationDto;
+
     const [products, total] = await this.productsRepository.findAndCount({
       relations: ['categories'],
       where: { categories: { id: categoryId } },
       take: limit,
       skip: offset,
       order: {
-        price: priceOrder.toUpperCase() as 'ASC' | 'DESC', 
+        price: priceOrder.toUpperCase() as 'ASC' | 'DESC',
       },
     });
-  
+
     return {
       data: products,
       count: total,
     };
   }
-  
 
   async findAllCategory(): Promise<{ id: number; name: string }[]> {
     return this.categoriesRepository.find();
@@ -45,8 +44,6 @@ export class CategoriesService {
   async createCategory(
     createCategoryDto: CreateCategoryDto,
   ): Promise<Categories> {
-    const newCategory = this.categoriesRepository.create(createCategoryDto);
-    return this.categoriesRepository.save(newCategory);
+    return this.categoriesRepository.save(createCategoryDto);
   }
-
 }
