@@ -22,7 +22,7 @@ export class UsersController {
   @UseGuards(RolesGuard, JwtAuthGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Roles(ERole.ADMIN)
-  async updateUserRole(@Body() updateRoleDto: UpdateRoleDto) {
+  async updateUserRole(@Body() updateRoleDto: UpdateRoleDto): Promise<boolean> {
     return this.userService.updateRole(updateRoleDto);
   }
 }

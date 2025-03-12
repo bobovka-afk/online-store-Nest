@@ -1,8 +1,6 @@
 import { IsEnum, IsNotEmpty, IsInt, Min, Max } from 'class-validator';
-import { ERole } from 'auth/enums/roles.enum'; 
-//Переделать на только id(табельный) пользователя
+import { ERole } from 'auth/enums/roles.enum';
 export class UpdateRoleDto {
-
   @IsNotEmpty()
   @IsInt()
   @Min(0)

@@ -58,7 +58,7 @@ export class AuthService {
     return tokens;
   }
 
-  async generateTokens(user: User) {
+  generateTokens(user: User) {
     const payload = { userId: user.id, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -76,14 +76,18 @@ export class AuthService {
 
   async verifyAccessToken(token: string): Promise<User> {
     try {
-      const decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-  
-      const user = await this.userRepository.findOne({ where: { id: decoded.userId } });
-  
+      const decoded = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      const user = await this.userRepository.findOne({
+        where: { id: decoded.userId },
+      });
+
       if (!user) {
         throw new UnauthorizedException('Пользователь не найден');
       }
-  
+
       return user;
     } catch (error) {
       throw new UnauthorizedException('Токен недействителен или просрочен');
@@ -100,7 +104,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh-токен невалиден');
     }
 
-    const tokens = await this.generateTokens(user);
+    const tokens = this.generateTokens(user);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
@@ -119,5 +123,4 @@ export class AuthService {
   async saveRefreshToken(userId: number, refreshToken: string) {
     await this.userRepository.update(userId, { refreshToken });
   }
-
 }

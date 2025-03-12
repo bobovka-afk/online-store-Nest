@@ -2,23 +2,21 @@ import {
   Body,
   Controller,
   Get,
-  NotFoundException,
   Param,
   Post,
   Query,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 
 import { CategoriesService } from './categories.service';
 import { Roles } from 'auth/decorators/roles.decorator';
 import { ERole } from 'auth/enums/roles.enum';
 import { CreateCategoryDto } from './dto/createCategory.dto';
-import { Products } from 'entities/products.entity';
+import { Product } from 'entities/product.entity';
 import { RolesGuard } from 'auth/guards/roles.guard';
 import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
 import { PaginationDto } from './dto/pagination.dto';
+import { Categories } from '../entities/categories.entity';
 
 @Controller('categories')
 @UseGuards(RolesGuard, JwtAuthGuard)
@@ -27,24 +25,22 @@ export class CategoriesController {
 
   @Post('create')
   @Roles(ERole.ADMIN)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
-  public async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
+  public async createCategory(
+    @Body() createCategoryDto: CreateCategoryDto,
+  ): Promise<Categories> {
     return this.categoriesService.createCategory(createCategoryDto);
+  }
+
+  @Get('list')
+  public async getAllCategories(): Promise<Categories[]> {
+    return this.categoriesService.findAllCategory();
   }
 
   @Get(':categoryId')
   public async findAllByCategory(
     @Param('categoryId') categoryId: number,
-    @Query() paginationDto: PaginationDto, // по умолчанию цена по убыванию 
-  ): Promise<{ data: Products[]; count: number }> {
-    if (!categoryId) {
-      throw new NotFoundException('Категория не найдена');
-    }
+    @Query() paginationDto: PaginationDto,
+  ): Promise<{ data: Product[]; count: number }> {
     return this.categoriesService.findAllByCategory(categoryId, paginationDto);
-  }
-
-  @Get('list')
-  public async getAllCategories() {
-    return this.categoriesService.findAllCategory();
   }
 }

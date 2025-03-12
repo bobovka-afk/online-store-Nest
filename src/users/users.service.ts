@@ -17,19 +17,21 @@ export class UsersService {
 
   async createUser(email: string, password: string) {
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = this.userRepository.create({
+    return this.userRepository.save({
       email,
       password: hashedPassword,
     });
-    return this.userRepository.save(user);
   }
 
-  async updateRole(updateRoleDto: UpdateRoleDto) {
-    const {id , role} = updateRoleDto
+  async updateRole(updateRoleDto: UpdateRoleDto): Promise<boolean> {
+    const { id, role } = updateRoleDto;
+
     const updateResult = await this.userRepository.update({ id }, { role });
+
     if (updateResult.affected === 0) {
       throw new Error('Пользователь не найден');
     }
-    return true
+
+    return true;
   }
 }

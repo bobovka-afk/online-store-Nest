@@ -4,8 +4,6 @@ import {
   Body,
   Req,
   Res,
-  UsePipes,
-  ValidationPipe,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
@@ -18,7 +16,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async register(@Body() createUserDto: RegisterDto, @Res() res: Response) {
     const tokens = await this.authService.register(
       createUserDto.email,
@@ -35,9 +32,11 @@ export class AuthController {
   }
 
   @Post('login')
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const tokens = await this.authService.login(loginDto.email, loginDto.password);
+    const tokens = await this.authService.login(
+      loginDto.email,
+      loginDto.password,
+    );
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,

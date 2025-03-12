@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Categories } from 'entities/categories.entity';
-import { Products } from 'entities/products.entity';
+import { Product } from 'entities/product.entity';
 import { CreateCategoryDto } from 'categories/dto/createCategory.dto';
 import { Repository } from 'typeorm';
 import { PaginationDto } from './dto/pagination.dto';
@@ -11,14 +11,19 @@ export class CategoriesService {
   constructor(
     @InjectRepository(Categories)
     private categoriesRepository: Repository<Categories>,
-    @InjectRepository(Products)
-    private productsRepository: Repository<Products>,
+    @InjectRepository(Product)
+    private productsRepository: Repository<Product>,
   ) {}
 
   async findAllByCategory(
     categoryId: number,
     paginationDto: PaginationDto,
-  ): Promise<{ data: Products[]; count: number }> {
+  ): Promise<{ data: Product[]; count: number }> {
+    const category: Categories | null =
+      await this.categoriesRepository.findOneBy({ id: categoryId });
+    if (!category) {
+      throw new NotFoundException(`Категория с id ${categoryId} не найдена`);
+    }
     const { limit = 20, offset = 0, priceOrder = 'desc' } = paginationDto;
 
     const [products, total] = await this.productsRepository.findAndCount({
@@ -37,7 +42,7 @@ export class CategoriesService {
     };
   }
 
-  async findAllCategory(): Promise<{ id: number; name: string }[]> {
+  async findAllCategory(): Promise<Categories[]> {
     return this.categoriesRepository.find();
   }
 

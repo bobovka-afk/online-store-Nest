@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ProductsModule } from './products/products.module';
-import { Products } from './entities/products.entity';
+import { Product } from './entities/product.entity';
 import { UsersModule } from 'users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { Categories } from './entities/categories.entity';
@@ -12,6 +12,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { CategoriesModule } from './categories/categories.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
+import { Cart } from './entities/cart.entity';
+import { CartItem } from './entities/cart-items.entity';
+import { Order } from './entities/orders.entity';
+import { OrderItem } from './entities/order-items.entity';
 
 @Module({
   imports: [
@@ -28,7 +32,7 @@ import { OrdersModule } from './orders/orders.module';
         username: 'admin',
         password: 'Password',
         database: 'database',
-        entities: [User, Products, Categories],
+        entities: [User, Product, Categories, Cart, CartItem, Order, OrderItem],
         synchronize: false,
         entity: [__dirname + '/database/core/**/*.entity{.ts,.js}'],
         autoLoadEntities: true,

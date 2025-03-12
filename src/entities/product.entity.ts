@@ -5,14 +5,16 @@ import {
   ManyToMany,
   JoinTable,
   OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import { Categories } from './categories.entity';
-import { Cart } from './cart.entity';
+import { CartItem } from './cart-items.entity';
 import { OrderItem } from './order-items.entity';
 
-@Entity('product')
-export class Products {
+@Entity('products')
+export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -28,19 +30,19 @@ export class Products {
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => Categories, (category) => category.products)
+  @ManyToMany(() => Categories, (category: Categories) => category.products)
   @JoinTable({ name: 'product_categories' })
   categories: Categories[];
 
-  @OneToMany(() => Cart, (cartItem) => cartItem.product_id)
-  cartItems: [];
+  @OneToMany(() => CartItem, (cartItem: CartItem) => cartItem.product)
+  cartItems: CartItem[];
 
-  @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
+  @OneToMany(() => OrderItem, (orderItem: OrderItem) => orderItem.product)
   orderItems: OrderItem[];
 }

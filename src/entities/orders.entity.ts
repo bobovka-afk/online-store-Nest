@@ -16,7 +16,7 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.orders)
+  @ManyToOne(() => User, (user: User) => user.orders)
   user: User;
 
   @Column('decimal')
@@ -31,6 +31,6 @@ export class Order {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  @OneToMany(() => OrderItem, (orderItem: OrderItem) => orderItem.order)
   orderItems: OrderItem[];
 }

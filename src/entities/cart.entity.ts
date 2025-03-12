@@ -17,13 +17,13 @@ export class Cart {
   @Column()
   product_id: number;
 
-  @OneToOne(() => User, (user) => user.cart, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, (user: User) => user.cart, { onDelete: 'CASCADE' })
   user_id: User;
 
   @Column({ default: 1 })
   quantity: number;
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.cart)
+  @OneToMany(() => CartItem, (cartItem: CartItem) => cartItem.cart)
   items: CartItem[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

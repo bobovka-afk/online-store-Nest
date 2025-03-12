@@ -29,10 +29,10 @@ export class User {
   @Column({ nullable: true })
   refreshToken?: string;
 
-  @OneToOne(() => Cart, (cart) => cart.user_id, { cascade: true })
+  @OneToOne(() => Cart, (cart: Cart) => cart.user_id, { cascade: true })
   @JoinColumn()
   cart: Cart;
 
-  @OneToMany(() => Order, (order) => order.user)
+  @OneToMany(() => Order, (order: Order) => order.user)
   orders: Order[];
 }
