@@ -26,4 +26,10 @@ export class UpdateProductDto {
   @MinLength(3)
   @MaxLength(100)
   description?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Max(10000)
+  stockQuantity?: number;
 }

@@ -24,7 +24,7 @@ export class ProductsService {
   }
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
-    const { name, price, description, quantity, categoryIds } =
+    const { name, price, description, stockQuantity, categoryIds } =
       createProductDto;
 
     const categories = await this.categoriesRepository.find({
@@ -41,7 +41,7 @@ export class ProductsService {
       name,
       price,
       description,
-      quantity,
+      stockQuantity,
       categories,
     });
   }
@@ -50,10 +50,13 @@ export class ProductsService {
     id: number,
     updateProductDto: UpdateProductDto,
   ): Promise<boolean> {
-    const result = await this.productsRepository.update(id, updateProductDto);
+    const updateResult = await this.productsRepository.update(
+      id,
+      updateProductDto,
+    );
 
-    if (result.affected === 0) {
-      throw new NotFoundException(`Продукт с id ${id} не найден`);
+    if (updateResult.affected === 0) {
+      throw new NotFoundException('Продукт не найден');
     }
 
     return true;

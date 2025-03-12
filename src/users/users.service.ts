@@ -1,9 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { UpdateRoleDto } from './dto/updateRole.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class UsersService {
@@ -15,13 +21,28 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async createUser(email: string, password: string) {
-    const hashedPassword = await bcrypt.hash(password, 12);
-    return this.userRepository.save({
-      email,
-      password: hashedPassword,
+  async createUser(registerDto: RegisterDto): Promise<User> {
+    const { email, password } = registerDto;
+
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
     });
-  }
+    if (existingUser) {
+      throw new ConflictException('Пользователь с таким email уже существует');
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash(password, 12);
+      const user = this.userRepository.create({
+        email,
+        password: hashedPassword,
+      });
+
+      return await this.userRepository.save(user);
+    } catch {
+      throw new InternalServerErrorException('Не удалось создать пользователя');
+    }
+  } // ???? FIX
 
   async updateRole(updateRoleDto: UpdateRoleDto): Promise<boolean> {
     const { id, role } = updateRoleDto;
@@ -29,7 +50,7 @@ export class UsersService {
     const updateResult = await this.userRepository.update({ id }, { role });
 
     if (updateResult.affected === 0) {
-      throw new Error('Пользователь не найден');
+      throw new NotFoundException('Пользователь не найден');
     }
 
     return true;

@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Patch,
-  UseGuards,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Patch, UseGuards } from '@nestjs/common';
 
 import { UpdateRoleDto } from 'users/dto/updateRole.dto';
 import { Roles } from 'auth/decorators/roles.decorator';
@@ -20,7 +13,6 @@ export class UsersController {
 
   @Patch('update-role')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Roles(ERole.ADMIN)
   async updateUserRole(@Body() updateRoleDto: UpdateRoleDto): Promise<boolean> {
     return this.userService.updateRole(updateRoleDto);

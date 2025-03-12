@@ -3,11 +3,11 @@ import {
   IsNumber,
   IsArray,
   IsNotEmpty,
-  Min,
   Max,
   MinLength,
   MaxLength,
   ArrayMaxSize,
+  IsPositive,
 } from 'class-validator';
 
 export class CreateProductDto {
@@ -19,7 +19,7 @@ export class CreateProductDto {
 
   @IsNumber()
   @IsNotEmpty()
-  @Min(1)
+  @IsPositive()
   @Max(1000000)
   price: number;
 
@@ -30,9 +30,9 @@ export class CreateProductDto {
 
   @IsNumber()
   @IsNotEmpty()
-  @Min(1)
+  @IsPositive()
   @Max(10000)
-  quantity: number;
+  stockQuantity: number;
 
   @IsArray()
   @ArrayMaxSize(10)

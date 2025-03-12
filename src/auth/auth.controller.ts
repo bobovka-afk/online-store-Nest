@@ -16,10 +16,10 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() createUserDto: RegisterDto, @Res() res: Response) {
+  async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
     const tokens = await this.authService.register(
-      createUserDto.email,
-      createUserDto.password,
+      registerDto.email,
+      registerDto.password,
     );
 
     res.cookie('refreshToken', tokens.refreshToken, {

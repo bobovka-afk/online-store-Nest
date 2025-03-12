@@ -51,12 +51,12 @@ export class AuthService {
       throw new BadRequestException('Email уже используется');
     }
 
-    const user = await this.usersService.createUser(email, password);
+    const user = await this.usersService.createUser({ email, password });
     const tokens = await this.generateTokens(user);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
-  }
+  } // FIX
 
   generateTokens(user: User) {
     const payload = { userId: user.id, role: user.role };

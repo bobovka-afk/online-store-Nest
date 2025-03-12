@@ -6,7 +6,7 @@ import {
   Delete,
   Param,
   Body,
-  UseGuards, NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 
 import { ProductsService } from './products.service';
@@ -41,17 +41,8 @@ export class ProductsController {
   public async update(
     @Param('id') id: number,
     @Body() updateProductDto: UpdateProductDto,
-  ): Promise<{ success: boolean }> {
-    const result = await this.productsService.updateProduct(
-      id,
-      updateProductDto,
-    );
-
-    if (!result) {
-      throw new NotFoundException(`Продукт с id ${id} не найден`);
-    }
-
-    return { success: true };
+  ): Promise<boolean> {
+    return this.productsService.updateProduct(id, updateProductDto);
   }
 
   @Delete(':id')
