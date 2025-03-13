@@ -48,7 +48,6 @@ export class ProductsController {
   @Delete(':id')
   @Roles(ERole.ADMIN)
   public async delete(@Param('id') id: number): Promise<boolean> {
-    await this.productsService.deleteProduct(id);
-    return true;
+    return this.productsService.deleteProduct(id);
   }
 }

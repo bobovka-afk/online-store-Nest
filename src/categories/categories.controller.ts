@@ -18,7 +18,7 @@ import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
 import { PaginationDto } from './dto/pagination.dto';
 import { Categories } from '../entities/categories.entity';
 
-@Controller('categories')
+@Controller('products/category')
 @UseGuards(RolesGuard, JwtAuthGuard)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}

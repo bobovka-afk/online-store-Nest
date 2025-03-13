@@ -1,6 +1,6 @@
 import {
   IsNumber,
-  IsOptional,
+  IsOptional, IsPositive,
   IsString,
   Max,
   MaxLength,
@@ -17,7 +17,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(1)
+  @IsPositive()
   @Max(1000000)
   price?: number;
 

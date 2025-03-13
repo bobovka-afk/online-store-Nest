@@ -8,11 +8,11 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { UsersService } from './users.service';
 
 @Controller('users')
+@UseGuards(RolesGuard, JwtAuthGuard)
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @Patch('update-role')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Roles(ERole.ADMIN)
   async updateUserRole(@Body() updateRoleDto: UpdateRoleDto): Promise<boolean> {
     return this.userService.updateRole(updateRoleDto);

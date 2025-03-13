@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from '../entities/cart.entity';
@@ -25,17 +26,15 @@ export class CartService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Добавление товара в корзину
   async addToCart(userId: number, addToCartDto: AddToCartDto): Promise<Cart> {
     const { productId, quantity } = addToCartDto;
 
-    // Находим пользователя и его корзину
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['cart', 'cart.items', 'cart.items.product'],
     });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Пользователь не найден');
     }
 
     // Если корзины нет, создаем её
@@ -47,26 +46,22 @@ export class CartService {
       await this.cartRepository.save(cart);
     }
 
-    // Находим товар
     const product = await this.productRepository.findOne({
       where: { id: productId },
     });
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException('Товар не найден');
     }
 
-    // Проверяем, достаточно ли товара на складе
     if (product.stockQuantity < quantity) {
       throw new BadRequestException('Not enough stock');
     }
 
-    // Проверяем, есть ли товар уже в корзине
     let cartItem = cart.items.find((item) => item.product.id === productId);
     if (cartItem) {
-      // Если товар уже в корзине, обновляем количество
       cartItem.quantity += quantity;
     } else {
-      // Если товара нет в корзине, создаем новый элемент
+      // Если товара нет в корзине, создаем новый объект
       cartItem = new CartItem();
       cartItem.cart = cart;
       cartItem.product = product;

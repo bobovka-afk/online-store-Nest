@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Product } from '../entities/product.entity';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { Categories } from 'entities/categories.entity';
+import { QueryFailedError } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
@@ -24,26 +30,34 @@ export class ProductsService {
   }
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
-    const { name, price, description, stockQuantity, categoryIds } =
-      createProductDto;
+    try {
+      const { name, price, description, stockQuantity, categoryIds } = createProductDto;
 
-    const categories = await this.categoriesRepository.find({
-      where: {
-        id: In(categoryIds),
-      },
-    });
+      const categories = await this.categoriesRepository.find({
+        where: {
+          id: In(categoryIds),
+        },
+      });
 
-    if (categories.length !== categoryIds.length) {
-      throw new NotFoundException('Неверно указаны категории');
+      if (categories.length !== categoryIds.length) {
+        throw new NotFoundException('Неверно указаны категории');
+      }
+
+      const product = await this.productsRepository.save({
+        name,
+        price,
+        description,
+        stockQuantity,
+        categories,
+      });
+
+      return product;
+    } catch (error) {
+      if (error instanceof QueryFailedError && error.driverError?.code === '23505') {
+        throw new ConflictException('Товар с таким именем уже существует');
+      }
+      throw new InternalServerErrorException('Не удалось создать товар');
     }
-
-    return this.productsRepository.save({
-      name,
-      price,
-      description,
-      stockQuantity,
-      categories,
-    });
   }
 
   async updateProduct(

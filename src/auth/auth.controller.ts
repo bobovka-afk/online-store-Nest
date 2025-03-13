@@ -17,10 +17,7 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
-    const tokens = await this.authService.register(
-      registerDto.email,
-      registerDto.password,
-    );
+    const tokens = await this.authService.register(registerDto);
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,

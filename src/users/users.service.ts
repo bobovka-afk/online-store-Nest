@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -24,25 +25,25 @@ export class UsersService {
   async createUser(registerDto: RegisterDto): Promise<User> {
     const { email, password } = registerDto;
 
-    const existingUser = await this.userRepository.findOne({
-      where: { email },
-    });
+    const existingUser = await this.findByEmail(email);
     if (existingUser) {
       throw new ConflictException('Пользователь с таким email уже существует');
     }
 
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     try {
-      const hashedPassword = await bcrypt.hash(password, 12);
       const user = this.userRepository.create({
         email,
         password: hashedPassword,
       });
 
       return await this.userRepository.save(user);
-    } catch {
+    } catch (error) {
+      console.error('Ошибка при создании пользователя:', error);
       throw new InternalServerErrorException('Не удалось создать пользователя');
     }
-  } // ???? FIX
+  }
 
   async updateRole(updateRoleDto: UpdateRoleDto): Promise<boolean> {
     const { id, role } = updateRoleDto;

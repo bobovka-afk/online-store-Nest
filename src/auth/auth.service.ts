@@ -1,8 +1,8 @@
 import {
   Injectable,
   UnauthorizedException,
-  BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,7 @@ import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'entities/user.entity';
+import { RegisterDto } from '../users/dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,16 +21,21 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      throw new NotFoundException('Пользователь не найден');
-    }
+    try {
+      const user = await this.usersService.findByEmail(email);
+      if (!user) {
+        throw new NotFoundException('Пользователь не найден');
+      }
 
-    if (await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
-      return result;
-    } else {
-      throw new UnauthorizedException('Неверные данные для входа');
+      if (await bcrypt.compare(password, user.password)) {
+        const { password, ...result } = user;
+        return result;
+      } else {
+        throw new UnauthorizedException('Неверные данные для входа');
+      }
+    } catch (error) {
+      console.error('Ошибка при валидации пользователя:', error);
+      throw new InternalServerErrorException('Ошибка валидации пользователя');
     }
   }
 
@@ -45,18 +51,18 @@ export class AuthService {
     return tokens;
   }
 
-  async register(email: string, password: string) {
-    const existingUser = await this.usersService.findByEmail(email);
-    if (existingUser) {
-      throw new BadRequestException('Email уже используется');
+  async register(registerDto: RegisterDto) {
+    try {
+      const user = await this.usersService.createUser(registerDto);
+      const tokens = await this.generateTokens(user);
+      await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+      return tokens;
+    } catch (error) {
+      console.error('Ошибка при регистрации:', error);
+      throw new InternalServerErrorException('Ошибка регистрации пользователя');
     }
-
-    const user = await this.usersService.createUser({ email, password });
-    const tokens = await this.generateTokens(user);
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
-
-    return tokens;
-  } // FIX
+  }
 
   generateTokens(user: User) {
     const payload = { userId: user.id, role: user.role };
