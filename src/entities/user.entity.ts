@@ -6,6 +6,7 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
+
 import { Cart } from './cart.entity';
 import { Order } from './orders.entity';
 
@@ -29,8 +30,7 @@ export class User {
   @Column({ nullable: true })
   refreshToken?: string;
 
-  @OneToOne(() => Cart, (cart: Cart) => cart.user_id, { cascade: true })
-  @JoinColumn()
+  @OneToOne(() => Cart, (cart: Cart) => cart.user, { cascade: true })
   cart: Cart;
 
   @OneToMany(() => Order, (order: Order) => order.user)
