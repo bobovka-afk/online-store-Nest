@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { LoginDto } from '../users/dto/login.dto';
+import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from '../users/dto/register.dto';
 
 @Controller('auth')
@@ -30,10 +30,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const tokens = await this.authService.login(
-      loginDto.email,
-      loginDto.password,
-    );
+    const tokens = await this.authService.login(loginDto);
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,

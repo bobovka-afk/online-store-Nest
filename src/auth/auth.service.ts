@@ -4,6 +4,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
+
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
@@ -11,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'entities/user.entity';
 import { RegisterDto } from '../users/dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,30 +22,29 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(loginDto: LoginDto): Promise<User> {
     try {
+      const { email, password } = loginDto;
+
       const user = await this.usersService.findByEmail(email);
       if (!user) {
         throw new NotFoundException('Пользователь не найден');
       }
 
-      if (await bcrypt.compare(password, user.password)) {
-        const { password, ...result } = user;
-        return result;
-      } else {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
         throw new UnauthorizedException('Неверные данные для входа');
       }
+
+      return user;
     } catch (error) {
       console.error('Ошибка при валидации пользователя:', error);
       throw new InternalServerErrorException('Ошибка валидации пользователя');
     }
   }
 
-  async login(email: string, password: string) {
-    const user = await this.validateUser(email, password);
-    if (!user) {
-      throw new UnauthorizedException();
-    }
+  async login(loginDto: LoginDto) {
+    const user = await this.validateUser(loginDto); // <-- Передаем объект, а не два аргумента
 
     const tokens = await this.generateTokens(user);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
@@ -54,7 +55,7 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     try {
       const user = await this.usersService.createUser(registerDto);
-      const tokens = await this.generateTokens(user);
+      const tokens = this.generateTokens(user);
       await this.saveRefreshToken(user.id, tokens.refreshToken);
 
       return tokens;
@@ -95,7 +96,7 @@ export class AuthService {
       }
 
       return user;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Токен недействителен или просрочен');
     }
   }
@@ -121,7 +122,7 @@ export class AuthService {
       return this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Refresh-токен недействителен');
     }
   }

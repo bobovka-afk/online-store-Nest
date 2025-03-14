@@ -28,8 +28,8 @@ export class CartController {
   async addToCart(
     @Req() req: AuthenticatedRequest,
     @Body() addToCartDto: AddToCartDto,
-  ): Promise<Cart> {
-    const userId = req.user.id; // Теперь TypeScript знает, что req.user существует и имеет id
+  ): Promise<boolean> {
+    const userId = req.user.id;
     return this.cartService.addToCart(userId, addToCartDto);
   }
 
