@@ -9,15 +9,11 @@ import {
 } from '@nestjs/common';
 
 import { CartService } from './cart.service';
-import { AddToCartDto } from './dto/add-to-cart.dto';
-import { RemoveFromCartDto } from './dto/remove-from-cart.dto';
+import { AddToCartDto } from './dto/addToCart.dto';
+import { RemoveFromCartDto } from './dto/removeFromCart.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Request } from 'express';
 import { Cart } from '../entities/cart.entity';
-
-interface AuthenticatedRequest extends Request {
-  user: { id: number }; // Добавляем тип для user
-}
+import { AuthenticatedRequest } from '../interfaces/authenticated-request.interface';
 
 @Controller('cart')
 @UseGuards(JwtAuthGuard)
@@ -46,5 +42,11 @@ export class CartController {
   ): Promise<boolean> {
     const userId = req.user.id;
     return this.cartService.removeFromCart(userId, removeFromCartDto);
+  }
+
+  @Delete('clear')
+  async clearCart(@Req() req: AuthenticatedRequest): Promise<boolean> {
+    const userId = req.user.id;
+    return this.cartService.clearCart(userId);
   }
 }

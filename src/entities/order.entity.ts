@@ -4,8 +4,6 @@ import {
   Column,
   ManyToOne,
   OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
 import { User } from './user.entity';
@@ -16,21 +14,24 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user: User) => user.orders)
-  user: User;
-
-  @Column('decimal')
-  total_price: number;
+  @Column()
+  status: 'generated' | 'completed' | 'cancelled';
 
   @Column()
-  status: 'paid' | 'completed' | 'cancelled';
+  phoneNumber: string;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @Column()
+  address: string;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @Column()
+  deliveryDate: string;
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  totalPrice: number;
 
   @OneToMany(() => OrderItem, (orderItem: OrderItem) => orderItem.order)
   orderItems: OrderItem[];
+
+  @ManyToOne(() => User, (user: User) => user.orders)
+  user: User;
 }

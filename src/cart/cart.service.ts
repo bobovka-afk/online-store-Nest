@@ -10,8 +10,8 @@ import { Cart } from '../entities/cart.entity';
 import { CartItem } from '../entities/cart-items.entity';
 import { Product } from '../entities/product.entity';
 import { User } from '../entities/user.entity';
-import { AddToCartDto } from './dto/add-to-cart.dto';
-import { RemoveFromCartDto } from './dto/remove-from-cart.dto';
+import { AddToCartDto } from './dto/addToCart.dto';
+import { RemoveFromCartDto } from './dto/removeFromCart.dto';
 
 @Injectable()
 export class CartService {
@@ -117,6 +117,23 @@ export class CartService {
     }
 
     await this.cartItemRepository.remove(cartItem);
+    return true;
+  }
+
+  async clearCart(userId: number): Promise<boolean> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['cart', 'cart.items', 'cart.items.product'],
+    });
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const cart = user.cart;
+    if (!cart) {
+      throw new NotFoundException('Корзина не найдена');
+    }
+    await this.cartRepository.delete({ user });
     return true;
   }
 }

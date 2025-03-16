@@ -11,10 +11,10 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { CategoriesModule } from './categories/categories.module';
 import { CartModule } from './cart/cart.module';
-import { OrdersModule } from './orders/orders.module';
+import { OrderModule } from './order/order.module';
 import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cart-items.entity';
-import { Order } from './entities/orders.entity';
+import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-items.entity';
 
 @Module({
@@ -43,7 +43,7 @@ import { OrderItem } from './entities/order-items.entity';
     AuthModule,
     CategoriesModule,
     CartModule,
-    OrdersModule,
+    OrderModule,
   ],
   providers: [RolesGuard],
 })

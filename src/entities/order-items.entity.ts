@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
-import { Order } from './orders.entity';
+import { Order } from './order.entity';
 import { Product } from './product.entity';
 
 @Entity('order_items')
@@ -16,6 +16,6 @@ export class OrderItem {
   @Column('int')
   quantity: number;
 
-  @Column('decimal')
+  @Column('decimal', { precision: 10, scale: 2 })
   price_at_order_time: number;
 }

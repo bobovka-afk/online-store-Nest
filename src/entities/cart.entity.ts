@@ -25,6 +25,9 @@ export class Cart {
   @JoinColumn({ name: 'user_id' }) // Поле user_id будет в БД
   user: User;
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.cart)
+  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   items: CartItem[];
 }
