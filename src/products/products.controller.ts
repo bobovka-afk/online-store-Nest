@@ -17,7 +17,9 @@ import { ERole } from '../auth/enums/roles.enum';
 import { RolesGuard } from 'auth/guards/roles.guard';
 import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
 import { Product } from '../entities/product.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('products')
 @Controller('products')
 @UseGuards(RolesGuard, JwtAuthGuard)
 export class ProductsController {

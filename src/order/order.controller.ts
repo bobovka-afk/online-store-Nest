@@ -4,7 +4,9 @@ import { AuthenticatedRequest } from '../interfaces/authenticated-request.interf
 import { CreateOrderDto } from './dto/createOrder.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OrderResponseDto } from './dto/orderResponse.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('orders')
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrderController {

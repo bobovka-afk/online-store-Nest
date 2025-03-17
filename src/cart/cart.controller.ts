@@ -14,7 +14,9 @@ import { RemoveFromCartDto } from './dto/removeFromCart.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Cart } from '../entities/cart.entity';
 import { AuthenticatedRequest } from '../interfaces/authenticated-request.interface';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('cart')
 @Controller('cart')
 @UseGuards(JwtAuthGuard)
 export class CartController {

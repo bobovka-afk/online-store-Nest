@@ -7,18 +7,18 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class LoginDto {
+export class RegisterDto {
   @ApiProperty({
     example: 'user@example.com',
-    description: 'Адрес электронной почты пользователя',
+    description: 'Email пользователя',
   })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
   @ApiProperty({
-    example: 'password123',
-    description: 'Пароль пользователя (от 8 до 64 символов)',
+    example: 'strongPassword123!',
+    description: 'Пароль пользователя',
     minLength: 8,
     maxLength: 64,
   })

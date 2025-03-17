@@ -17,8 +17,10 @@ import { RolesGuard } from 'auth/guards/roles.guard';
 import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
 import { PaginationDto } from './dto/pagination.dto';
 import { Categories } from '../entities/categories.entity';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('products/category')
+@ApiTags('category')
+@Controller('category')
 @UseGuards(RolesGuard, JwtAuthGuard)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
