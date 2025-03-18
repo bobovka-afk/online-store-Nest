@@ -22,7 +22,7 @@ export class Cart {
   updatedAt: Date;
 
   @OneToOne(() => User, (user: User) => user.cart, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' }) // Поле user_id будет в БД
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.cart, {

@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -8,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Categories } from 'entities/categories.entity';
 import { Product } from 'entities/product.entity';
 import { CreateCategoryDto } from 'categories/dto/createCategory.dto';
-import { QueryFailedError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
@@ -61,15 +60,8 @@ export class CategoriesService {
     createCategoryDto: CreateCategoryDto,
   ): Promise<Categories> {
     try {
-      const category = await this.categoriesRepository.save(createCategoryDto);
-      return category;
-    } catch (error) {
-      if (
-        error instanceof QueryFailedError &&
-        error.driverError?.code === '23505'
-      ) {
-        throw new ConflictException('Категория с таким именем уже существует');
-      }
+      return await this.categoriesRepository.save(createCategoryDto);
+    } catch {
       throw new InternalServerErrorException('Не удалось создать категорию');
     }
   }

@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { AuthenticatedRequest } from '../interfaces/authenticated-request.interface';
+import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
 import { CreateOrderDto } from './dto/createOrder.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OrderResponseDto } from './dto/orderResponse.dto';

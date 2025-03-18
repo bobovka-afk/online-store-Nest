@@ -15,7 +15,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
     }),
-  )
+  );
   app.useGlobalGuards(app.get(RolesGuard));
 
   const config = new DocumentBuilder()

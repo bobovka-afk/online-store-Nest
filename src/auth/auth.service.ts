@@ -23,30 +23,25 @@ export class AuthService {
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<User> {
-    try {
-      const { email, password } = loginDto;
+    const { email, password } = loginDto;
 
-      const user = await this.usersService.findByEmail(email);
-      if (!user) {
-        throw new NotFoundException('Пользователь не найден');
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Неверные данные для входа');
-      }
-
-      return user;
-    } catch (error) {
-      console.error('Ошибка при валидации пользователя:', error);
-      throw new InternalServerErrorException('Ошибка валидации пользователя');
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
     }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверные данные для входа');
+    }
+
+    return user;
   }
 
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto); // <-- Передаем объект, а не два аргумента
 
-    const tokens = await this.generateTokens(user);
+    const tokens = this.generateTokens(user);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
@@ -83,31 +78,55 @@ export class AuthService {
 
   async verifyAccessToken(token: string): Promise<User> {
     try {
-      const decoded = this.jwtService.verify(token, {
+      const decoded = this.jwtService.verify<{ userId: string }>(token, {
         secret: process.env.JWT_SECRET,
       });
 
+      const userId = Number(decoded.userId); // Приведение типа
+
+      if (isNaN(userId)) {
+        throw new UnauthorizedException(
+          'Некорректный токен: userId должен быть числом',
+        );
+      }
+
       const user = await this.userRepository.findOne({
-        where: { id: decoded.userId },
+        where: { id: userId },
       });
 
       if (!user) {
-        throw new UnauthorizedException('Пользователь не найден');
+        throw new UnauthorizedException('Не удалось найти пользователя');
       }
 
       return user;
-    } catch {
+    } catch (error) {
+      console.error('Ошибка проверки токена:', error);
       throw new UnauthorizedException('Токен недействителен или просрочен');
     }
   }
 
   async refreshTokens(refreshToken: string) {
-    const decoded = await this.verifyRefreshToken(refreshToken);
+    const decoded = this.verifyRefreshToken(refreshToken) as {
+      userId: string;
+    };
+    const userId = Number(decoded.userId);
+
+    if (isNaN(userId)) {
+      throw new UnauthorizedException(
+        'Некорректный токен: userId должен быть числом',
+      );
+    }
+
     const user = await this.userRepository.findOne({
-      where: { id: decoded.userId },
+      where: { id: userId },
     });
 
-    if (!user || user.refreshToken !== refreshToken) {
+    if (!user || !user.refreshToken) {
+      throw new UnauthorizedException('Refresh-токен невалиден');
+    }
+
+    const isTokenValid = await bcrypt.compare(refreshToken, user.refreshToken);
+    if (!isTokenValid) {
       throw new UnauthorizedException('Refresh-токен невалиден');
     }
 
@@ -117,9 +136,9 @@ export class AuthService {
     return tokens;
   }
 
-  async verifyRefreshToken(refreshToken: string) {
+  verifyRefreshToken(refreshToken: string): { userId: string } {
     try {
-      return this.jwtService.verify(refreshToken, {
+      return this.jwtService.verify<{ userId: string }>(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
     } catch {

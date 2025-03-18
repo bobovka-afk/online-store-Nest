@@ -45,7 +45,7 @@ export class AuthController {
 
   @Post('refresh')
   async refreshToken(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.refreshToken as string;
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh-токен отсутствует');

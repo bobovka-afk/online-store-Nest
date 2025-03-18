@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -10,7 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { Categories } from 'entities/categories.entity';
-import { QueryFailedError } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
@@ -31,7 +29,8 @@ export class ProductsService {
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
     try {
-      const { name, price, description, stockQuantity, categoryIds } = createProductDto;
+      const { name, price, description, stockQuantity, categoryIds } =
+        createProductDto;
 
       const categories = await this.categoriesRepository.find({
         where: {
@@ -43,19 +42,14 @@ export class ProductsService {
         throw new NotFoundException('Неверно указаны категории');
       }
 
-      const product = await this.productsRepository.save({
+      return await this.productsRepository.save({
         name,
         price,
         description,
         stockQuantity,
         categories,
       });
-
-      return product;
-    } catch (error) {
-      if (error instanceof QueryFailedError && error.driverError?.code === '23505') {
-        throw new ConflictException('Товар с таким именем уже существует');
-      }
+    } catch {
       throw new InternalServerErrorException('Не удалось создать товар');
     }
   }

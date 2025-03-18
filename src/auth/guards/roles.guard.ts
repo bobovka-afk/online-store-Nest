@@ -32,12 +32,17 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 
-    let accessToken = this.extractAccessToken(request);
+    // Получаем accessToken из заголовков
+    const accessToken = this.extractAccessToken(request);
 
     if (!accessToken) {
-      const refreshToken = request.cookies?.refreshToken;
+      const refreshToken = (request.cookies as Record<string, string>)
+        ?.refreshToken;
+
       if (!refreshToken) {
-        throw new UnauthorizedException('Токен не предоставлен и Refresh-токен отсутствует');
+        throw new UnauthorizedException(
+          'Токен не предоставлен и Refresh-токен отсутствует',
+        );
       }
 
       try {
@@ -51,19 +56,19 @@ export class RolesGuard implements CanActivate {
 
         response.setHeader('Authorization', `Bearer ${tokens.accessToken}`);
 
-        request.user = await this.authService.verifyAccessToken(tokens.accessToken);
+        request.user = await this.authService.verifyAccessToken(
+          tokens.accessToken,
+        );
         return this.hasRequiredRole(request.user as DecodedUser, requiredRoles);
-      } catch (refreshError) {
+      } catch {
         throw new UnauthorizedException('Не удалось обновить токен');
       }
     }
 
     try {
-      const decoded = await this.authService.verifyAccessToken(accessToken);
-      request.user = decoded;
-
+      request.user = await this.authService.verifyAccessToken(accessToken);
       return this.hasRequiredRole(request.user as DecodedUser, requiredRoles);
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Неверный или просроченный токен');
     }
   }
@@ -75,6 +80,7 @@ export class RolesGuard implements CanActivate {
 
   private hasRequiredRole(user: DecodedUser, requiredRoles: ERole[]): boolean {
     if (!user.role) {
+      console.error('Роль пользователя не найдена', user);
       throw new ForbiddenException('Роль не найдена');
     }
 
