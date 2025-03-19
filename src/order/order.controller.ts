@@ -6,8 +6,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OrderResponseDto } from './dto/orderResponse.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('orders')
-@Controller('orders')
+@ApiTags('order')
+@Controller('order')
 @UseGuards(JwtAuthGuard)
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}

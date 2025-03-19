@@ -16,6 +16,7 @@ import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cart-items.entity';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-items.entity';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { OrderItem } from './entities/order-items.entity';
     CategoriesModule,
     CartModule,
     OrderModule,
+    SeedModule,
   ],
   providers: [RolesGuard],
 })

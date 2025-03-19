@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: pgadmin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pgsql
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migrate:
+    build: .
+    command: bash -c "wait-for-it db:5432 -- npm run migration:run"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: pgadmin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pgsql
+    depends_on:
+      - db
+
+  app:
+    build: .
+    ports:
+      - '8000:8000'
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: pgadmin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pgsql
+      JWT_SECRET: your-jwt-secret
+      PORT: 8000
+    depends_on:
+      - migrate
+
+volumes:
+  postgres_data:

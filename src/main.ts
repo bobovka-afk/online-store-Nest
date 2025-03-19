@@ -4,10 +4,16 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SeederService } from './seed/seed.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT ?? 4200;
+
+  const seederService = app.get(SeederService);
+
+  await seederService.seed();
+
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -25,7 +31,7 @@ async function bootstrap() {
     .addTag('products', 'Управление товарами')
     .addTag('category', 'Управление категориями')
     .addTag('cart', 'Корзина покупателя')
-    .addTag('orders', 'Оформление и управление заказами')
+    .addTag('order', 'Оформление и управление заказами')
     .addTag('users', 'Управление пользователями')
     .addTag('auth', 'Аутентификация/Авторизация')
     .build();
