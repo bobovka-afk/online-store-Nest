@@ -1,10 +1,23 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
 import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
 import { CreateOrderDto } from './dto/createOrder.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OrderResponseDto } from './dto/orderResponse.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Order } from '../entities/order.entity';
+import { UpdateOrderStatusDto } from './dto/updateOrderStatus.dto';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { ERole } from '../auth/enums/roles.enum';
 
 @ApiTags('order')
 @Controller('order')
@@ -28,5 +41,20 @@ export class OrderController {
       deliveryDate: order.deliveryDate,
       totalPrice: order.totalPrice,
     };
+  }
+
+  @Get('list')
+  async orderList(@Req() req: AuthenticatedRequest): Promise<Order[]> {
+    const userId = req.user.id;
+    return await this.orderService.orderList(userId);
+  }
+
+  @Patch(':id')
+  @Roles(ERole.ADMIN)
+  async updateOrderStatus(
+    @Param('id') orderId: number,
+    @Body() updateOrderStatusDto: UpdateOrderStatusDto,
+  ) {
+    return this.orderService.updateOrderStatus(orderId, updateOrderStatusDto);
   }
 }

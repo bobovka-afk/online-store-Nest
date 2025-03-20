@@ -4,17 +4,21 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 
-import { InjectEntityManager } from '@nestjs/typeorm';
-import { EntityManager } from 'typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { OrderItem } from '../entities/order-items.entity';
 import { Cart } from '../entities/cart.entity';
 import { Product } from '../entities/product.entity';
 import { CreateOrderDto } from './dto/createOrder.dto';
+import { UpdateOrderStatusDto } from './dto/updateOrderStatus.dto';
 
 @Injectable()
 export class OrderService {
-  constructor(@InjectEntityManager() private entityManager: EntityManager) {}
+  constructor(
+    @InjectEntityManager() private entityManager: EntityManager,
+    @InjectRepository(Order) private orderRepository: Repository<Order>,
+  ) {}
 
   async createOrder(
     userId: number,
@@ -84,5 +88,29 @@ export class OrderService {
 
       return order;
     });
+  }
+
+  async orderList(userId: number): Promise<Order[]> {
+    return this.orderRepository.find({
+      where: { user: { id: userId } },
+      relations: ['orderItems', 'orderItems.product'],
+    });
+  }
+
+  async updateOrderStatus(
+    orderId: number,
+    updateOrderStatusDto: UpdateOrderStatusDto,
+  ): Promise<Order> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    order.status = updateOrderStatusDto.status;
+
+    return this.orderRepository.save(order);
   }
 }

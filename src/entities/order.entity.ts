@@ -15,7 +15,7 @@ export class Order {
   id: number;
 
   @Column()
-  status: 'generated' | 'completed' | 'cancelled';
+  status: string;
 
   @Column()
   phoneNumber: string;

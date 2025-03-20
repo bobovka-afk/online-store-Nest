@@ -7,10 +7,11 @@ import { CartItem } from '../entities/cart-items.entity';
 import { Product } from '../entities/product.entity';
 import { User } from '../entities/user.entity';
 import { OrderItem } from '../entities/order-items.entity';
+import { Order } from '../entities/order.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Cart, CartItem, Product, User, OrderItem]), // Регистрируем сущности
+    TypeOrmModule.forFeature([Cart, CartItem, Product, User, OrderItem, Order]), // Регистрируем сущности
   ],
   controllers: [OrderController],
   providers: [OrderService],

@@ -25,7 +25,7 @@ export class SeederService {
         password: hashedPassword,
         role: 'admin',
       });
-      console.log(' Пользователи добавлены успешно');
+      console.log(' Пользователь добавлен успешно');
     } else {
       console.log(' Пользователь "admin@gmail.com" уже существует, пропуск...');
     }
