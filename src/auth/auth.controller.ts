@@ -11,6 +11,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -60,5 +61,17 @@ export class AuthController {
     });
 
     return res.json({ accessToken: tokens.accessToken });
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string): Promise<boolean> {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<boolean> {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

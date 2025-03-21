@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 import { User } from './user.entity';
-import { OrderItem } from './order-items.entity';
+import { OrderItem } from './order-item.entity';
 
 @Entity('orders')
 export class Order {

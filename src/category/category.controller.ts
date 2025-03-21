@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { CategoriesService } from './categories.service';
+import { CategoryService } from './category.service';
 import { Roles } from 'auth/decorators/roles.decorator';
 import { ERole } from 'auth/enums/roles.enum';
 import { CreateCategoryDto } from './dto/createCategory.dto';
@@ -16,14 +16,14 @@ import { Product } from 'entities/product.entity';
 import { RolesGuard } from 'auth/guards/roles.guard';
 import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
 import { PaginationDto } from './dto/pagination.dto';
-import { Categories } from '../entities/categories.entity';
+import { Categories } from '../entities/category.entity';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('category')
 @Controller('category')
 @UseGuards(RolesGuard, JwtAuthGuard)
-export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+export class CategoryController {
+  constructor(private readonly categoriesService: CategoryService) {}
 
   @Post('create')
   @Roles(ERole.ADMIN)

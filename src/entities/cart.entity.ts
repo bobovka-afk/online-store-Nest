@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import { User } from './user.entity';
-import { CartItem } from './cart-items.entity';
+import { CartItem } from './cart-item.entity';
 
 @Entity('cart')
 export class Cart {

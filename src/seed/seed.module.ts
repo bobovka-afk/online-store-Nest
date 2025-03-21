@@ -3,7 +3,7 @@ import { SeederService } from './seed.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Product } from '../entities/product.entity';
-import { Categories } from '../entities/categories.entity';
+import { Categories } from '../entities/category.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Product, Categories])],

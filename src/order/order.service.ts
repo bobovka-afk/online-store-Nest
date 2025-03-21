@@ -7,7 +7,7 @@ import {
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Order } from '../entities/order.entity';
-import { OrderItem } from '../entities/order-items.entity';
+import { OrderItem } from '../entities/order-item.entity';
 import { Cart } from '../entities/cart.entity';
 import { Product } from '../entities/product.entity';
 import { CreateOrderDto } from './dto/createOrder.dto';
@@ -16,8 +16,8 @@ import { UpdateOrderStatusDto } from './dto/updateOrderStatus.dto';
 @Injectable()
 export class OrderService {
   constructor(
-    @InjectEntityManager() private entityManager: EntityManager,
-    @InjectRepository(Order) private orderRepository: Repository<Order>,
+    @InjectEntityManager() private readonly entityManager: EntityManager,
+    @InjectRepository(Order) private readonly orderRepository: Repository<Order>,
   ) {}
 
   async createOrder(

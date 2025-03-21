@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Product } from '../entities/product.entity';
-import { Categories } from '../entities/categories.entity';
+import { Categories } from '../entities/category.entity';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class SeederService {
-  constructor(private dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   async seedUsers() {
     const userRepository = this.dataSource.getRepository(User);
