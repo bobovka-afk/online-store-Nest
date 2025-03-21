@@ -9,11 +9,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Categories } from './categories.entity';
-import { CartItem } from './cart-items.entity';
-import { OrderItem } from './order-items.entity';
+import { Categories } from './category.entity';
+import { CartItem } from './cart-item.entity';
+import { OrderItem } from './order-item.entity';
 
-@Entity('products')
+@Entity('product')
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;

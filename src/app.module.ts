@@ -2,21 +2,21 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { ProductsModule } from './products/products.module';
+import { ProductModule } from './product/product.module';
 import { Product } from './entities/product.entity';
-import { UsersModule } from 'users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { Categories } from './entities/categories.entity';
+import { Categories } from './entities/category.entity';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtModule } from '@nestjs/jwt';
-import { CategoriesModule } from './categories/categories.module';
+import { CategoryModule } from './category/category.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
 import { Cart } from './entities/cart.entity';
-import { CartItem } from './entities/cart-items.entity';
+import { CartItem } from './entities/cart-item.entity';
 import { Order } from './entities/order.entity';
-import { OrderItem } from './entities/order-items.entity';
+import { OrderItem } from './entities/order-item.entity';
 import { SeedModule } from './seed/seed.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -39,10 +39,10 @@ import { SeedModule } from './seed/seed.module';
       }),
     }),
     JwtModule.register({}),
-    ProductsModule,
-    UsersModule,
+    ProductModule,
+    UserModule,
     AuthModule,
-    CategoriesModule,
+    CategoryModule,
     CartModule,
     OrderModule,
     SeedModule,

@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { ProductsService } from './products.service';
+import { ProductService } from './product.service';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { Roles } from 'auth/decorators/roles.decorator';
@@ -22,8 +22,8 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('products')
 @Controller('products')
 @UseGuards(RolesGuard, JwtAuthGuard)
-export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+export class ProductController {
+  constructor(private readonly productsService: ProductService) {}
 
   @Get('/:id')
   public async getById(@Param('id') id: number): Promise<Product | null> {

@@ -13,13 +13,13 @@ import { UpdateRoleDto } from './dto/updateRole.dto';
 import { RegisterDto } from '../auth/dto/register.dto';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
+    return await this.userRepository.findOne({ where: { email } });
   }
 
   async createUser(registerDto: RegisterDto): Promise<User> {
@@ -55,5 +55,13 @@ export class UsersService {
     }
 
     return true;
+  }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { resetToken: token } });
+  }
+
+  async update(id: number, user: Partial<User>) {
+    return this.userRepository.update(id, user);
   }
 }

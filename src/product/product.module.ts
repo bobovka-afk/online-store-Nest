@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { Product } from '../entities/product.entity';
-import { Categories } from '../entities/categories.entity';
-import { ProductsService } from './products.service';
-import { ProductsController } from './products.controller';
+import { Categories } from '../entities/category.entity';
+import { ProductService } from './product.service';
+import { ProductController } from './product.controller';
 import { AuthModule } from 'auth/auth.module';
 
 @Module({
@@ -13,7 +13,7 @@ import { AuthModule } from 'auth/auth.module';
     JwtModule.register({}),
     AuthModule,
   ],
-  providers: [ProductsService],
-  controllers: [ProductsController],
+  providers: [ProductService],
+  controllers: [ProductController],
 })
-export class ProductsModule {}
+export class ProductModule {}

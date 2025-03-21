@@ -7,25 +7,29 @@ import {
 
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service';
+import { UserService } from '../user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { MailService } from '../mail/mail.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly userService: UserService,
+    private readonly mailService: MailService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<User> {
     const { email, password } = loginDto;
 
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.userService.findByEmail(email);
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
@@ -49,7 +53,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     try {
-      const user = await this.usersService.createUser(registerDto);
+      const user = await this.userService.createUser(registerDto);
       const tokens = this.generateTokens(user);
       await this.saveRefreshToken(user.id, tokens.refreshToken);
 
@@ -77,32 +81,27 @@ export class AuthService {
   }
 
   async verifyAccessToken(token: string): Promise<User> {
-    try {
-      const decoded = this.jwtService.verify<{ userId: string }>(token, {
-        secret: process.env.JWT_SECRET,
-      });
+    const decoded = this.jwtService.verify<{ userId: string }>(token, {
+      secret: process.env.JWT_SECRET,
+    });
 
-      const userId = Number(decoded.userId); // Приведение типа
+    const userId = Number(decoded.userId); // Приведение типа
 
-      if (isNaN(userId)) {
-        throw new UnauthorizedException(
-          'Некорректный токен: userId должен быть числом',
-        );
-      }
-
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('Не удалось найти пользователя');
-      }
-
-      return user;
-    } catch (error) {
-      console.error('Ошибка проверки токена:', error);
-      throw new UnauthorizedException('Токен недействителен или просрочен');
+    if (isNaN(userId)) {
+      throw new UnauthorizedException(
+        'Некорректный токен: userId должен быть числом',
+      );
     }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Не удалось найти пользователя');
+    }
+
+    return user;
   }
 
   async refreshTokens(refreshToken: string) {
@@ -148,5 +147,34 @@ export class AuthService {
 
   async saveRefreshToken(userId: number, refreshToken: string) {
     await this.userRepository.update(userId, { refreshToken });
+  }
+
+  async forgotPassword(email: string): Promise<boolean> {
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetToken = token;
+    await this.userService.update(user.id, user);
+
+    await this.mailService.sendResetPasswordEmail(email, token);
+    return true;
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<boolean> {
+    const { token, newPassword } = resetPasswordDto;
+
+    const user = await this.userService.findByResetToken(token);
+    if (!user) {
+      throw new UnauthorizedException('Неверный токен');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+    user.resetToken = undefined;
+    await this.userService.update(user.id, user);
+
+    return true;
   }
 }

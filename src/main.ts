@@ -32,7 +32,7 @@ async function bootstrap() {
     .addTag('category', 'Управление категориями')
     .addTag('cart', 'Корзина покупателя')
     .addTag('order', 'Оформление и управление заказами')
-    .addTag('users', 'Управление пользователями')
+    .addTag('user', 'Управление пользователями')
     .addTag('auth', 'Аутентификация/Авторизация')
     .build();
 
