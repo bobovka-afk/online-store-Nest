@@ -5,7 +5,7 @@ import { User } from './entities/user.entity';
 import { ProductModule } from './product/product.module';
 import { Product } from './entities/product.entity';
 import { AuthModule } from './auth/auth.module';
-import { Categories } from './entities/category.entity';
+import { Category } from './entities/category.entity';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { CategoryModule } from './category/category.module';
@@ -33,7 +33,7 @@ import { UserModule } from './user/user.module';
         username: configService.get<string>('POSTGRES_USER'),
         password: configService.get<string>('POSTGRES_PASSWORD'),
         database: configService.get<string>('POSTGRES_DB'),
-        entities: [User, Product, Categories, Cart, CartItem, Order, OrderItem],
+        entities: [User, Product, Category, Cart, CartItem, Order, OrderItem],
         synchronize: false,
         autoLoadEntities: true,
       }),

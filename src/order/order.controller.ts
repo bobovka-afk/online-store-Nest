@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -18,6 +19,7 @@ import { Order } from '../entities/order.entity';
 import { UpdateOrderStatusDto } from './dto/updateOrderStatus.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ERole } from '../auth/enums/roles.enum';
+import { PaginationOrderDto } from './dto/paginationOrder.dto';
 
 @ApiTags('order')
 @Controller('order')
@@ -43,12 +45,11 @@ export class OrderController {
     };
   }
 
-  @Get('list')
+  @Get('my-orders')
   async orderList(@Req() req: AuthenticatedRequest): Promise<Order[]> {
     const userId = req.user.id;
     return await this.orderService.orderList(userId);
   }
-
   @Patch(':id')
   @Roles(ERole.ADMIN)
   async updateOrderStatus(
@@ -56,5 +57,19 @@ export class OrderController {
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
   ) {
     return this.orderService.updateOrderStatus(orderId, updateOrderStatusDto);
+  }
+
+  @Get('list')
+  @Roles(ERole.ADMIN)
+  async getAllOrders(
+    @Query() paginationOrderDto: PaginationOrderDto,
+  ): Promise<{ data: Order[]; count: number }> {
+    return this.orderService.getAllOrders(paginationOrderDto);
+  }
+
+  @Get('status')
+  @Roles(ERole.ADMIN)
+  async getOrdersByStatus(@Query() paginationOrderDto: PaginationOrderDto) {
+    return this.orderService.getOrdersByStatus(paginationOrderDto);
   }
 }

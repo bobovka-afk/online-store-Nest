@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Product } from '../entities/product.entity';
-import { Categories } from '../entities/category.entity';
+import { Category } from '../entities/category.entity';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 
@@ -25,14 +25,11 @@ export class SeederService {
         password: hashedPassword,
         role: 'admin',
       });
-      console.log(' Пользователь добавлен успешно');
-    } else {
-      console.log(' Пользователь "admin@gmail.com" уже существует, пропуск...');
     }
   }
 
   async seedCategories() {
-    const categoryRepository = this.dataSource.getRepository(Categories);
+    const categoryRepository = this.dataSource.getRepository(Category);
 
     const existingCategories = await categoryRepository.find();
     const existingCategoryNames = new Set(
@@ -44,37 +41,28 @@ export class SeederService {
       .filter((cat) => !existingCategoryNames.has(cat.name)); // Исключаем дубликаты
 
     if (newCategories.length > 0) {
-      try {
-        await categoryRepository
-          .createQueryBuilder()
-          .insert()
-          .into(Categories)
-          .values(newCategories)
-          .orIgnore() // Для PostgreSQL, чтобы пропустить дубликаты
-          .execute();
-        console.log(' Категории добавлены успешно');
-      } catch {
-        console.error(' Ошибка при добавлении категорий:');
-      }
-    } else {
-      console.log('️ Все категории уже существуют, пропуск...');
+      await categoryRepository
+        .createQueryBuilder()
+        .insert()
+        .into(Category)
+        .values(newCategories)
+        .orIgnore() // Для PostgreSQL, чтобы пропустить дубликаты
+        .execute();
     }
   }
 
   async seedProducts() {
     const productRepository = this.dataSource.getRepository(Product);
-    const categoryRepository = this.dataSource.getRepository(Categories);
+    const categoryRepository = this.dataSource.getRepository(Category);
 
     const existingProducts = await productRepository.count();
     if (existingProducts > 0) {
-      console.log(' Продукты уже существуют, пропуск...');
-      return;
+      return; // Продукты уже существуют, пропуск
     }
 
     const categories = await categoryRepository.find();
     if (categories.length === 0) {
-      console.log('️ Нет категорий, пропуск добавления продуктов...');
-      return;
+      return; // Нет категорий, пропуск добавления продуктов
     }
 
     const products = Array.from({ length: 5 }).map(() => {
@@ -93,13 +81,11 @@ export class SeederService {
     });
 
     await productRepository.save(products);
-    console.log('Продукты добавлены успешно');
   }
 
   async seed() {
     await this.seedUsers();
     await this.seedCategories();
     await this.seedProducts();
-    console.log('Сеанс заполнения базы данных завершен!');
   }
 }

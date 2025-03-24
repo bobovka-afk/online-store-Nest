@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Categories } from './category.entity';
+import { Category } from './category.entity';
 import { CartItem } from './cart-item.entity';
 import { OrderItem } from './order-item.entity';
 
@@ -36,9 +36,9 @@ export class Product {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => Categories, (category: Categories) => category.products)
+  @ManyToMany(() => Category, (category: Category) => category.products)
   @JoinTable({ name: 'product_categories' })
-  categories: Categories[];
+  category: Category[];
 
   @OneToMany(() => CartItem, (cartItem: CartItem) => cartItem.product)
   cartItems: CartItem[];

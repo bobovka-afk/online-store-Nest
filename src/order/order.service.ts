@@ -12,12 +12,14 @@ import { Cart } from '../entities/cart.entity';
 import { Product } from '../entities/product.entity';
 import { CreateOrderDto } from './dto/createOrder.dto';
 import { UpdateOrderStatusDto } from './dto/updateOrderStatus.dto';
+import { PaginationOrderDto } from './dto/paginationOrder.dto';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectEntityManager() private readonly entityManager: EntityManager,
-    @InjectRepository(Order) private readonly orderRepository: Repository<Order>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
   ) {}
 
   async createOrder(
@@ -106,11 +108,51 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new Error('Order not found');
+      throw new NotFoundException('Order not found');
     }
 
     order.status = updateOrderStatusDto.status;
 
     return this.orderRepository.save(order);
+  }
+
+  async getAllOrders(
+    paginationOrderDto: PaginationOrderDto,
+  ): Promise<{ data: Order[]; count: number }> {
+    const { limit, offset } = paginationOrderDto;
+
+    const [orders, total] = await this.orderRepository.findAndCount({
+      take: limit,
+      skip: offset,
+    });
+
+    if (orders.length === 0) {
+      throw new NotFoundException('Список заказов пуст.');
+    }
+
+    return {
+      data: orders,
+      count: total,
+    };
+  }
+
+  async getOrdersByStatus(
+    paginationOrderDto: PaginationOrderDto,
+  ): Promise<{ data: Order[]; count: number }> {
+    const { limit, offset } = paginationOrderDto;
+
+    const [orders, total] = await this.orderRepository.findAndCount({
+      take: limit,
+      skip: offset,
+    });
+
+    if (orders.length === 0) {
+      throw new NotFoundException(`Заказы не найдены.`);
+    }
+
+    return {
+      data: orders,
+      count: total,
+    };
   }
 }

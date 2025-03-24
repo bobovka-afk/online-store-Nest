@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, Min, IsOptional, IsIn } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 
-export class PaginationDto {
+export class PaginationCategoryDto {
   @ApiProperty({
     example: 20,
     description: 'Ограничение количества элементов на странице',
@@ -11,10 +11,10 @@ export class PaginationDto {
     default: 20,
   })
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => (value ? Number(value) : 20))
   @IsInt()
   @Min(1)
-  limit?: number = 20;
+  limit?: number;
 
   @ApiProperty({
     example: 0,
@@ -24,10 +24,10 @@ export class PaginationDto {
     default: 0,
   })
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => (value ? Number(value) : 0))
   @IsInt()
   @Min(0)
-  offset?: number = 0;
+  offset?: number;
 
   @ApiProperty({
     example: 'desc',
@@ -38,6 +38,7 @@ export class PaginationDto {
     default: 'desc',
   })
   @IsOptional()
+  @Transform(({ value }) => (value ? value : 'desc'))
   @IsIn(['asc', 'desc'])
-  priceOrder?: 'asc' | 'desc' = 'desc';
+  priceOrder?: 'asc' | 'desc';
 }

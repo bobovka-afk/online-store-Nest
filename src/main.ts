@@ -4,15 +4,10 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { SeederService } from './seed/seed.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT ?? 4200;
-
-  const seederService = app.get(SeederService);
-
-  await seederService.seed();
 
   app.use(cookieParser());
   app.useGlobalPipes(

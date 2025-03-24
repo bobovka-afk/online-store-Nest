@@ -4,40 +4,41 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Categories } from 'entities/category.entity';
+import { Category } from '../entities/category.entity';
 import { Product } from 'entities/product.entity';
 import { CreateCategoryDto } from 'category/dto/createCategory.dto';
 import { Repository } from 'typeorm';
-import { PaginationDto } from './dto/pagination.dto';
+import { PaginationCategoryDto } from './dto/paginationCategory.dto';
 
 @Injectable()
 export class CategoryService {
   constructor(
-    @InjectRepository(Categories)
-    private readonly categoriesRepository: Repository<Categories>,
+    @InjectRepository(Category)
+    private readonly categoriesRepository: Repository<Category>,
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
   ) {}
 
   async findAllByCategory(
     categoryId: number,
-    paginationDto: PaginationDto,
+    paginationCategoryDto: PaginationCategoryDto,
   ): Promise<{ data: Product[]; count: number }> {
-    const category: Categories | null =
-      await this.categoriesRepository.findOneBy({ id: categoryId });
+    const category: Category | null = await this.categoriesRepository.findOneBy(
+      { id: categoryId },
+    );
     if (!category) {
       throw new NotFoundException(`Категория с id ${categoryId} не найдена`);
     }
 
-    const { limit = 20, offset = 0, priceOrder = 'desc' } = paginationDto;
-
     const [products, total] = await this.productsRepository.findAndCount({
       relations: ['categories'],
-      where: { categories: { id: categoryId } },
-      take: limit,
-      skip: offset,
+      where: { category: { id: categoryId } },
+      take: paginationCategoryDto.limit,
+      skip: paginationCategoryDto.offset,
       order: {
-        price: priceOrder.toUpperCase() as 'ASC' | 'DESC',
+        price: (paginationCategoryDto.priceOrder ?? 'desc').toUpperCase() as
+          | 'ASC'
+          | 'DESC',
       },
     });
 
@@ -47,13 +48,13 @@ export class CategoryService {
     };
   }
 
-  async findAllCategory(): Promise<Categories[]> {
+  async findAllCategory(): Promise<Category[]> {
     return this.categoriesRepository.find();
   }
 
   async createCategory(
     createCategoryDto: CreateCategoryDto,
-  ): Promise<Categories> {
+  ): Promise<Category> {
     try {
       return await this.categoriesRepository.save(createCategoryDto);
     } catch {

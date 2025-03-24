@@ -1,22 +1,18 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product } from '../entities/product.entity';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { CreateProductDto } from './dto/createProduct.dto';
-import { Categories } from 'entities/category.entity';
+import { Category } from '../entities/category.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
-    @InjectRepository(Categories)
-    private readonly categoriesRepository: Repository<Categories>,
+    @InjectRepository(Category)
+    private readonly categoriesRepository: Repository<Category>,
   ) {}
 
   async findOneProduct(id: number): Promise<Product | null> {
