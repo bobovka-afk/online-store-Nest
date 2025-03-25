@@ -32,9 +32,7 @@ export class SeederService {
     const categoryRepository = this.dataSource.getRepository(Category);
 
     const existingCategories = await categoryRepository.find();
-    const existingCategoryNames = new Set(
-      existingCategories.map((cat) => cat.name),
-    );
+    const existingCategoryNames = new Set(existingCategories.map((cat) => cat.name));
 
     const newCategories = Array.from({ length: 5 })
       .map(() => ({ name: faker.commerce.department() }))
@@ -66,10 +64,7 @@ export class SeederService {
     }
 
     const products = Array.from({ length: 5 }).map(() => {
-      const randomCategories = faker.helpers.arrayElements(
-        categories,
-        faker.number.int({ min: 1, max: 3 }),
-      );
+      const randomCategories = faker.helpers.arrayElements(categories, faker.number.int({ min: 1, max: 3 }));
 
       return {
         name: faker.commerce.productName(),

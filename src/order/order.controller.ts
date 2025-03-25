@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
 import { CreateOrderDto } from './dto/createOrder.dto';
@@ -52,18 +42,13 @@ export class OrderController {
   }
   @Patch(':id')
   @Roles(ERole.ADMIN)
-  async updateOrderStatus(
-    @Param('id') orderId: number,
-    @Body() updateOrderStatusDto: UpdateOrderStatusDto,
-  ) {
+  async updateOrderStatus(@Param('id') orderId: number, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(orderId, updateOrderStatusDto);
   }
 
   @Get('list')
   @Roles(ERole.ADMIN)
-  async getAllOrders(
-    @Query() paginationOrderDto: PaginationOrderDto,
-  ): Promise<{ data: Order[]; count: number }> {
+  async getAllOrders(@Query() paginationOrderDto: PaginationOrderDto): Promise<{ data: Order[]; count: number }> {
     return this.orderService.getAllOrders(paginationOrderDto);
   }
 

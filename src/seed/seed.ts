@@ -1,13 +1,15 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../app.module';
+import { AppDataSource } from '../config/typeorm.config';
 import { SeederService } from './seed.service';
 
 async function runSeeder() {
-  const app = await NestFactory.create(AppModule);
-  const seederService = app.get(SeederService);
+  await AppDataSource.initialize(); // Подключаемся к БД
+  console.log('🔗 База данных подключена');
+
+  const seederService = new SeederService(AppDataSource);
   await seederService.seed();
-  console.log('Сидирование завершено!');
-  await app.close();
+
+  console.log('✅ Сидирование завершено!');
+  await AppDataSource.destroy();
 }
 
-runSeeder();
+runSeeder().catch(console.error);

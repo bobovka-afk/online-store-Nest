@@ -30,14 +30,9 @@ export class MailService {
     }
 
     const resetUrl = `http://localhost:8000/auth/reset-password?token=${token}`;
-    const emailUser = process.env.EMAIL_USER;
-
-    if (!emailUser) {
-      throw new Error('Не передан EMAIL_USER в .env');
-    }
 
     const mailOptions = {
-      from: `Служба поддержки <${emailUser}>`,
+      from: `Служба поддержки <${process.env.EMAIL_USER}>`, // Отправитель уже указан в конструкторе
       to: email,
       subject: 'Сброс пароля',
       text: `Перейдите по ссылке для сброса пароля: ${resetUrl}`,
@@ -46,18 +41,24 @@ export class MailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Письмо для сброса пароля отправлено на ${email}`);
-    } catch (error) {
-      if (error instanceof Error) {
-        this.logger.error(
-          `Ошибка при отправке письма на ${email}: ${error.message}`,
-        );
-      } else {
-        this.logger.error(
-          `Ошибка при отправке письма на ${email}: неизвестная ошибка`,
-        );
-      }
+    } catch {
       throw new Error('Не удалось отправить письмо для сброса пароля');
+    }
+  }
+
+  async sendOrderConfirmationEmail(email: string, orderId: number): Promise<void> {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Подтверждение заказа',
+      text: `Ваш заказ №${orderId} успешно оформлен.`,
+      html: this.getOrderConfirmationHtmlTemplate(orderId),
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch {
+      throw new Error('Не удалось отправить письмо с подтверждением заказа');
     }
   }
 
@@ -66,5 +67,13 @@ export class MailService {
       <p>Для сброса пароля нажмите <a href="${resetUrl}">сюда</a>.</p>
       <p>Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>
     `;
+  }
+
+  private getOrderConfirmationHtmlTemplate(orderId: number): string {
+    return `
+    <p>Здравствуйте!</p>
+    <p>Ваш заказ <strong>№${orderId}</strong> успешно оформлен.</p>
+    <p>Спасибо за покупку!</p>
+  `;
   }
 }

@@ -1,16 +1,11 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from 'entities/user.entity';
+import { User } from '../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { MailService } from '../mail/mail.service';
@@ -88,9 +83,7 @@ export class AuthService {
     const userId = Number(decoded.userId); // Приведение типа
 
     if (isNaN(userId)) {
-      throw new UnauthorizedException(
-        'Некорректный токен: userId должен быть числом',
-      );
+      throw new UnauthorizedException('Некорректный токен: userId должен быть числом');
     }
 
     const user = await this.userRepository.findOne({
@@ -111,9 +104,7 @@ export class AuthService {
     const userId = Number(decoded.userId);
 
     if (isNaN(userId)) {
-      throw new UnauthorizedException(
-        'Некорректный токен: userId должен быть числом',
-      );
+      throw new UnauthorizedException('Некорректный токен: userId должен быть числом');
     }
 
     const user = await this.userRepository.findOne({

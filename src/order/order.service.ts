@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
@@ -13,6 +9,7 @@ import { Product } from '../entities/product.entity';
 import { CreateOrderDto } from './dto/createOrder.dto';
 import { UpdateOrderStatusDto } from './dto/updateOrderStatus.dto';
 import { PaginationOrderDto } from './dto/paginationOrder.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class OrderService {
@@ -20,12 +17,10 @@ export class OrderService {
     @InjectEntityManager() private readonly entityManager: EntityManager,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    private readonly mailService: MailService,
   ) {}
 
-  async createOrder(
-    userId: number,
-    createOrderDto: CreateOrderDto,
-  ): Promise<Order> {
+  async createOrder(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
     const cart = await this.entityManager.findOne(Cart, {
       where: { user: { id: userId } },
       relations: ['items', 'items.product', 'user'],
@@ -35,7 +30,7 @@ export class OrderService {
       throw new NotFoundException('Корзина пуста или пользователь не найден');
     }
 
-    // Есть ли товар на складе
+    // Проверка наличия товара на складе
     for (const cartItem of cart.items) {
       if (cartItem.quantity > cartItem.product.stockQuantity) {
         throw new BadRequestException(
@@ -45,25 +40,23 @@ export class OrderService {
     }
 
     return this.entityManager.transaction(async (manager: EntityManager) => {
-      // Сумма заказа
-      const totalPrice = cart.items.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
-        0,
-      );
+      // Расчет общей суммы заказа
+      const totalPrice = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-      // Создание заказа
+      // Создание нового заказа
       const order = manager.create(Order, {
         user: cart.user,
         phoneNumber: createOrderDto.phoneNumber,
         address: createOrderDto.address,
         deliveryDate: createOrderDto.deliveryDate,
         totalPrice,
-        status: 'generated',
+        status: 'generated', // Статус заказа
       });
 
+      // Сохранение заказа
       await manager.save(order);
 
-      // Создаём OrderItem и уменьшаем количество товара
+      // Создание элементов заказа (OrderItem)
       const orderItems = cart.items.map((cartItem) =>
         manager.create(OrderItem, {
           order,
@@ -75,18 +68,18 @@ export class OrderService {
 
       await manager.save(orderItems);
 
-      // Вычесть из остатков на складе
+      // Уменьшаем количество товара на складе
       for (const cartItem of cart.items) {
-        await manager.decrement(
-          Product,
-          { id: cartItem.product.id },
-          'stockQuantity',
-          cartItem.quantity,
-        );
+        await manager.decrement(Product, { id: cartItem.product.id }, 'stockQuantity', cartItem.quantity);
       }
 
-      // Очистить корзину
+      // Очистка корзины
       await manager.delete(Cart, { id: cart.id });
+
+      const userEmail = cart.user.email;
+
+      // Отправка письма с подтверждением заказа
+      await this.mailService.sendOrderConfirmationEmail(userEmail, order.id);
 
       return order;
     });
@@ -99,10 +92,7 @@ export class OrderService {
     });
   }
 
-  async updateOrderStatus(
-    orderId: number,
-    updateOrderStatusDto: UpdateOrderStatusDto,
-  ): Promise<Order> {
+  async updateOrderStatus(orderId: number, updateOrderStatusDto: UpdateOrderStatusDto): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
     });
@@ -116,9 +106,7 @@ export class OrderService {
     return this.orderRepository.save(order);
   }
 
-  async getAllOrders(
-    paginationOrderDto: PaginationOrderDto,
-  ): Promise<{ data: Order[]; count: number }> {
+  async getAllOrders(paginationOrderDto: PaginationOrderDto): Promise<{ data: Order[]; count: number }> {
     const { limit, offset } = paginationOrderDto;
 
     const [orders, total] = await this.orderRepository.findAndCount({
@@ -136,9 +124,7 @@ export class OrderService {
     };
   }
 
-  async getOrdersByStatus(
-    paginationOrderDto: PaginationOrderDto,
-  ): Promise<{ data: Order[]; count: number }> {
+  async getOrdersByStatus(paginationOrderDto: PaginationOrderDto): Promise<{ data: Order[]; count: number }> {
     const { limit, offset } = paginationOrderDto;
 
     const [orders, total] = await this.orderRepository.findAndCount({
