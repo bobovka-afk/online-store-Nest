@@ -8,12 +8,11 @@ import { Product } from '../entities/product.entity';
 import { User } from '../entities/user.entity';
 import { OrderItem } from '../entities/order-item.entity';
 import { Order } from '../entities/order.entity';
+import { MailService } from '../mail/mail.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Cart, CartItem, Product, User, OrderItem, Order]), // Регистрируем сущности
-  ],
+  imports: [TypeOrmModule.forFeature([Cart, CartItem, Product, User, OrderItem, Order])],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, MailService],
 })
 export class OrderModule {}

@@ -1,10 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
   private readonly transporter: nodemailer.Transporter;
-  private readonly logger = new Logger(MailService.name);
 
   constructor() {
     const emailUser = process.env.EMAIL_USER;
@@ -15,8 +14,7 @@ export class MailService {
     }
 
     this.transporter = nodemailer.createTransport({
-      port: 465,
-      secure: true,
+      service: 'gmail',
       auth: {
         user: emailUser,
         pass: emailPass,
@@ -54,7 +52,7 @@ export class MailService {
       text: `Ваш заказ №${orderId} успешно оформлен.`,
       html: this.getOrderConfirmationHtmlTemplate(orderId),
     };
-
+    console.log(`Отправка письма на ${email}`);
     try {
       await this.transporter.sendMail(mailOptions);
     } catch {

@@ -53,8 +53,7 @@ export class AuthService {
       await this.saveRefreshToken(user.id, tokens.refreshToken);
 
       return tokens;
-    } catch (error) {
-      console.error('Ошибка при регистрации:', error);
+    } catch {
       throw new InternalServerErrorException('Ошибка регистрации пользователя');
     }
   }

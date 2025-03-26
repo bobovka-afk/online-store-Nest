@@ -20,7 +20,7 @@ export class OrderService {
     private readonly mailService: MailService,
   ) {}
 
-  async createOrder(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
+  async createOrder(userId: number, createOrderDto: CreateOrderDto) {
     const cart = await this.entityManager.findOne(Cart, {
       where: { user: { id: userId } },
       relations: ['items', 'items.product', 'user'],
@@ -39,6 +39,7 @@ export class OrderService {
       }
     }
 
+    // Начало транзакции
     return this.entityManager.transaction(async (manager: EntityManager) => {
       // Расчет общей суммы заказа
       const totalPrice = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
@@ -56,7 +57,6 @@ export class OrderService {
       // Сохранение заказа
       await manager.save(order);
 
-      // Создание элементов заказа (OrderItem)
       const orderItems = cart.items.map((cartItem) =>
         manager.create(OrderItem, {
           order,
@@ -76,12 +76,19 @@ export class OrderService {
       // Очистка корзины
       await manager.delete(Cart, { id: cart.id });
 
-      const userEmail = cart.user.email;
+      const userEmail = createOrderDto.email;
 
       // Отправка письма с подтверждением заказа
       await this.mailService.sendOrderConfirmationEmail(userEmail, order.id);
 
-      return order;
+      return {
+        id: order.id,
+        status: order.status,
+        phoneNumber: order.phoneNumber,
+        address: order.address,
+        deliveryDate: order.deliveryDate,
+        totalPrice: order.totalPrice,
+      };
     });
   }
 

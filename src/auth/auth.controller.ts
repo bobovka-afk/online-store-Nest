@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Req,
-  Res,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Post, Body, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -69,9 +62,7 @@ export class AuthController {
   }
 
   @Post('reset-password')
-  async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<boolean> {
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<boolean> {
     return this.authService.resetPassword(resetPasswordDto);
   }
 }

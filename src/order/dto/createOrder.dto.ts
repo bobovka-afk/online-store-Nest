@@ -1,14 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsPhoneNumber,
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  MaxLength,
-  IsDateString,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, IsDateString, IsPhoneNumber } from 'class-validator';
 
 export class CreateOrderDto {
+  @ApiProperty({
+    example: 'user@example.com',
+    description: 'Email клиента',
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
   @ApiProperty({
     example: '+79001234567',
     description: 'Номер телефона клиента (формат для России)',
